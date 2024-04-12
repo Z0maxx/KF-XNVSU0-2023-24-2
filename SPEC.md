@@ -1,47 +1,47 @@
 # Rendszer Leírása
 A szerveroldali fejlesztés féléves feladatát viszem tovább. Ebben van felhasználókezelés, lokálisan és Facebook-on keresztül is. A felhasználók tudják módosítani az adataikat és törölni magukat (ha lesz rá időm kibővítem ezt a részt külön email és jelszó módosítással).
 
-Az alkalmazásban a felhasználók tudnak Startup ötleteket létrehozni, amiket mások értékelhetnek. Van lehetőség kommentelni is az ötlethez, mindenki tudja módosítani a saját a kommentjét és az értékelését. Az ötlet saját oldalán láthatóak az értékelések és kommentek.
+Az alkalmazásban a felhasználók tudnak Startup ötleteket létrehozni, amiket mások értékelhetnek. Van lehetőség kommentelni is az ötlethez, mindenki tudja módosítani a saját kommentjét és értékelését. Az ötlet saját oldalán láthatóak az értékelések és kommentek.
 
 Az egyes felhasználóknak 2 saját publikus oldala van:
 * Csak az általuk létrehozott ötletek
-* Ötleteik listája cím szerint, hányan értékelték és kommenteltek hozzá, ők melyik ötletet hogyan értékeltek és milyen kommentet írtak hozzá
+* Ötleteik listája cím szerint, hányan értékelték és kommenteltek az adott ötlethez, ők melyik ötletet hogyan értékeltek és milyen kommentet írtak hozzá
 
 Az alkalmazásban van egy Moderátor szerepkör, aminek jogosultsága van bármelyik ötletet, értékelést és kommentet törölni.
 
 # API végpontok
 
-Hiba esetén 400 BadRequest hibákkal vagy 401 Unauthorized
+Hiba esetén 400 BadRequest hibákkal együtt vagy 401 Unauthorized
 
 LLP végű modelleknél a Lazy Loaded Property-ket is visszaadja
 
 ## Auth
 
-|Végpont      |Paraméterek  |Válasz      |Megjegyzés                |
-|-------------|-------------|------------|--------------------------|
-|Register     |RegisterModel|JWT token   |                          |
-|Login        |LoginModel   |JWT token   |                          |
-|GetUserInfos |-            |SiteUserDTO |Személyes adatokkal együtt|
-|DeleteMyself |-            |-           |                          |
-|UpdateProfile|RegisterModel|-           |                          |
+|Végpont      |Típus |Paraméterek  |Válasz      |Megjegyzés                |
+|-------------|------|-------------|------------|--------------------------|
+|Register     |POST  |RegisterModel|JWT token   |                          |
+|Login        |POST  |LoginModel   |JWT token   |                          |
+|GetUserInfos |GET   |-            |SiteUserDTO |Személyes adatokkal együtt|
+|DeleteMyself |DELETE|-            |-           |                          |
+|UpdateProfile|PUT   |RegisterModel|-           |                          |
 
 ## API
 
-|Végpont          |Paraméterek  |Válasz      |Megjegyzés                          |
-|-----------------|-------------|------------|------------------------------------|
-|GetIdea          |id           |IdeaDTOLLP  |                                    |
-|CreateIdea       |IdeaDTO      |-           |                                    |
-|UpdateIdea       |IdeaDTO, id  |-           |                                    |
-|DeleteIdea       |id           |-           |                                    |
-|GetIdeas         |-            |IdeaDTOLLP[]|                                    |
-|GetIdeasBy       |userId       |IdeaDTOLLP[]|                                    |
-|SubmitRating     |RatingDTO    |-           |Létrehozás / frissítés              |
-|SubmitComment    |CommentDTO   |-           |Létrehozás / frissítés              |
-|DeleteRating     |id           |-           |                                    |
-|DeleteComment    |id           |-           |                                    |
-|SiteUser         |id           |SiteUserDTO |Személyes adatok nélkül             |
-|GetProfilePicture|userId       |Profilkép   |Ha nincsen, akkor az alap kép       |
-|Restore          |-            |-           |Eredeti minta állapot visszaállítása|
+|Végpont          |Típus |Paraméterek  |Válasz      |Megjegyzés                          |
+|-----------------|------|-------------|------------|------------------------------------|
+|GetIdea          |GET   |id           |IdeaDTOLLP  |                                    |
+|CreateIdea       |POST  |IdeaDTO      |-           |                                    |
+|UpdateIdea       |PUT   |IdeaDTO, id  |-           |Body: IdeaDTO, URL: id              |
+|DeleteIdea       |DELETE|id           |-           |                                    |
+|GetIdeas         |GET   |-            |IdeaDTOLLP[]|                                    |
+|GetIdeasBy       |GET   |userId       |IdeaDTOLLP[]|                                    |
+|SubmitRating     |PUT   |RatingDTO    |-           |Létrehozás / frissítés              |
+|SubmitComment    |PUT   |CommentDTO   |-           |Létrehozás / frissítés              |
+|DeleteRating     |DELETE|id           |-           |                                    |
+|DeleteComment    |DELETE|id           |-           |                                    |
+|SiteUser         |GET   |id           |SiteUserDTO |Személyes adatok nélkül             |
+|GetProfilePicture|GET   |userId       |Profilkép   |Ha nincsen, akkor az alap kép       |
+|Restore          |GET   |-            |-           |Eredeti minta állapot visszaállítása|
 
 # Technológiák és keretrendszerek
 
