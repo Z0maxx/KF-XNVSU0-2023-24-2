@@ -19,8 +19,9 @@ LLP végű modelleknél a Lazy Loaded Property-ket is visszaadja
 
 |Végpont      |Típus |Paraméterek  |Válasz      |Megjegyzés                |
 |-------------|------|-------------|------------|--------------------------|
-|Register     |POST  |RegisterModel|JWT token   |                          |
-|Login        |POST  |LoginModel   |JWT token   |                          |
+|Register     |POST  |RegisterModel|TokenModel  |JWT                       |
+|Login        |POST  |LoginModel   |TokenModel  |JWT                       |
+|Facebook     |POST  |TokenModel   |TokenModel  |Facebook token -> JWT     |
 |GetUserInfos |GET   |-            |SiteUserDTO |Személyes adatokkal együtt|
 |DeleteMyself |DELETE|-            |-           |                          |
 |UpdateProfile|PUT   |RegisterModel|-           |                          |
