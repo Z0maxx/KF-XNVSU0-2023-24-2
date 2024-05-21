@@ -1,17 +1,50 @@
 <!DOCTYPE html>
 <html lang="">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
-    <title><%= htmlWebpackPlugin.options.title %></title>
-  </head>
-  <body>
-    <noscript>
-      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
-    </noscript>
-    <div id="app"></div>
-    <!-- built files will be auto injected -->
-  </body>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+  <title><%= htmlWebpackPlugin.options.title %></title>
+</head>
+
+<body>
+  <script crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v19.0&appId=877033950751269" nonce="qrJEGNXH"></script>
+  <script>
+    var FB
+
+    function statusChangeCallback(response) {
+      localStorage.setItem('fb-response', JSON.stringify(response))
+      window.dispatchEvent(new Event('fb-response'))
+    }
+
+    function checkLoginState() {
+      FB.getLoginStatus(function (response) {
+        statusChangeCallback(response)
+      });
+    }
+
+    window.addEventListener('fb-logout', () => {
+      FB.logout()
+    })
+
+    window.addEventListener('fb-reload', () => {
+      FB.init({
+        appId: '877033950751269',
+        xfbml: true,
+        version: 'v18.0'
+      })
+    })
+
+    FB.Event.subscribe('xfbml.render', () => {
+      document.getElementById("fb-spinner")?.remove()
+    });
+  </script>
+  <noscript>
+    <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+  </noscript>
+  <div id="app"></div>
+</body>
+
 </html>
