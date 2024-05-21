@@ -69,7 +69,7 @@ const incorrect = ref(false)
 const store = useAuthStore()
 
 const { login, loginFacebook, setLoginValidations } = store
-const { loginValidations, isLoggedIn } = storeToRefs(store)
+const { loginValidations } = storeToRefs(store)
 
 onMounted(() => {
     setLoginValidations().then(() => {
