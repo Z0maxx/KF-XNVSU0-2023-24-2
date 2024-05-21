@@ -38,10 +38,14 @@ export const useAuthStore = defineStore({
         currentUser: undefined as SiteUser | undefined,
         loginValidations: undefined as Validations | undefined,
         registerValidations: undefined as Validations | undefined,
-        tokenModel: undefined as TokenModel | undefined
     }),
 
     getters: {
+        tokenModel(): TokenModel | undefined {
+            const token = localStorage.getItem(tokenName)
+            return token ? JSON.parse(token) as TokenModel : undefined
+        },
+
         isLoggedIn(): boolean {
             return this.tokenModel !== undefined
         },
@@ -68,7 +72,6 @@ export const useAuthStore = defineStore({
         logout() {
             localStorage.removeItem(tokenName)
             localStorage.removeItem('fb-response')
-            setTokenModel(this)
             window.dispatchEvent(new Event('fb-logout'))
         },
 
@@ -107,11 +110,6 @@ export const useAuthStore = defineStore({
     }
 })
 
-function setTokenModel(store: { tokenModel: TokenModel | undefined }) {
-    const token = localStorage.getItem(tokenName)
-    store.tokenModel = token ? JSON.parse(token) as TokenModel : undefined
-}
-
 async function setup(store: { tokenModel: TokenModel | undefined, currentUser: SiteUser | undefined }, res: Response) {
     let json: TokenModel | SiteUser = await convertToJson(res) as TokenModel
     const token = json.token
@@ -128,6 +126,5 @@ async function setup(store: { tokenModel: TokenModel | undefined, currentUser: S
     }
 
     localStorage.setItem(tokenName, JSON.stringify(token))
-    setTokenModel(store)
     store.currentUser = json
 }
