@@ -3,6 +3,7 @@ import Home from "@/components/Home.vue";
 import Login from "@/components/Login.vue";
 import Logout from "@/components/Logout.vue";
 import Register from "@/components/Register.vue";
+import { useAuthStore } from "@/stores/auth";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -30,6 +31,14 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
+})
+
+router.beforeEach((to) => {
+  const store = useAuthStore()
+  if (store.isLoggedIn && (to.name === 'login' || to.name === 'register')) {
+    return { name: 'home' }
+  }
+  return true
 })
 
 export default router;
