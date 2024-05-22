@@ -37,6 +37,7 @@
   </nav>
   <RouterView/>
   <Toast/>
+  <Popup/>
 </template>
 
 <script lang="ts" setup>
@@ -54,7 +55,7 @@ body {
   color: white;
 }
 
-#app > div {
+#app > div:first-of-type {
   max-width: 72rem;
   margin-left: auto !important;
   margin-right: auto !important;
