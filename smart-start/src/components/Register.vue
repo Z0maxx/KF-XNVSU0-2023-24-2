@@ -129,13 +129,13 @@ const { register, loginFacebook, setRegisterValidations } = store
 const { registerValidations } = storeToRefs(store)
 
 const toast = useToastStore()
-const { showMessage } = toast
+const { showAlert, showDanger, showSuccess } = toast
 
 onMounted(() => {
     setRegisterValidations().then(() => {
         setRequiredFields(requireds, registerValidations.value)
     }).catch(() => {
-        showMessage('Something went wrong', 'danger')
+        showDanger('Something went wrong')
     })
     window.dispatchEvent(new Event('fb-reload'))
 })
@@ -182,18 +182,17 @@ async function tryRegister() {
     }
 
     register(registerModel).then(() => {
-        showMessage('Registration successful, welcome', 'success')
+        showSuccess('Registration successful, welcome')
         router.push({ path: 'ideas' })
     }).catch((err: NetworkError) => {
-        console.log(err)
         if (err.status === 400 && 'errors' in err) {
             setErrors(errors, err.errors)
         }
         else if (Array.isArray(err)) {
-            showMessage(err[0], 'danger')
+            showDanger(err[0])
         }
         else {
-            showMessage('Something went wrong', 'alert')
+            showAlert('Something went wrong')
         }
     })
 }
@@ -210,7 +209,7 @@ window.addEventListener('fb-response', () => {
                 setErrors(errors, err.errors)
             }
             else {
-                showMessage('Something went wrong', 'alert')
+                showAlert('Something went wrong')
             }
         })
     }
