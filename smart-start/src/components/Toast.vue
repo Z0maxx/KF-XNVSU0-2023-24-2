@@ -33,17 +33,17 @@ const highlight = ref('')
 const themes: ToastThemes = {
     success: {
         background: 'bg-green-100',
-        text: 'text-green-500',
+        text: 'text-green-600',
         highlight: 'bg-green-200'
     },
     alert: {
         background: 'bg-amber-100',
-        text: 'text-amber-500',
+        text: 'text-amber-600',
         highlight: 'bg-amber-200'
     },
     danger: {
         background: 'bg-red-100',
-        text: 'text-red-500',
+        text: 'text-red-600',
         highlight: 'bg-red-200'
     }
 }

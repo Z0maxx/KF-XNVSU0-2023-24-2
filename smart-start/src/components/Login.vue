@@ -78,13 +78,14 @@ const { login, loginFacebook, setLoginValidations } = store
 const { loginValidations } = storeToRefs(store)
 
 const toast = useToastStore()
-const { showMessage } = toast
+const { showAlert, showDanger } = toast
+const defaultError = 'Something went wrong'
 
 onMounted(() => {
     setLoginValidations().then(() => {
         setRequiredFields(requireds, loginValidations.value)
     }).catch(() => {
-        showMessage('Something went wrong', 'alert')
+        showAlert(defaultError)
     })
     window.dispatchEvent(new Event('fb-reload'))
 })
@@ -99,10 +100,10 @@ async function tryLogin() {
         }
         else if (err.status === 401) {
             resetErrors(errors)
-            showMessage('Incorrect Email or Password', 'danger')
+            showDanger('Incorrect Email or Password')
         }
         else {
-            showMessage('Something went wrong', 'alert')
+            showAlert(defaultError)
         }
     })
 }
@@ -115,7 +116,7 @@ window.addEventListener('fb-response', () => {
         loginFacebook({ token: res.authResponse.accessToken, expiration: expiration.toISOString() }).then(() => {
             router.push({ path: 'ideas' })
         }).catch(() => {
-            showMessage('Something went wrong', 'alert')
+            showAlert(defaultError)
         })
     }
 })
