@@ -12,7 +12,7 @@
                                 <img ref="preview" class="object-cover h-full">
                             </div>
                         </label>
-                        <input v-on:change="handleProfilePictureChange" id="profile-picture" type="file" class="file:bg-lime-600 file:border-solid file:text-white file:rounded file:border-lime-800 file:cursor-pointer cursor-pointer relative w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
+                        <input v-on:change="handleProfilePictureChange" id="profile-picture" type="file" accept="image/jpeg,image/gif,image/png" class="file:bg-lime-600 file:border-solid file:text-white file:rounded file:border-lime-800 file:cursor-pointer cursor-pointer relative w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
                         <div v-if="profilePictureRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                     </div>
                     <div class="mt-4 relative">
@@ -73,7 +73,7 @@
                         </svg>
                         <span class="sr-only">Loading...</span>
                     </div>
-                    <div class="fb-login-button w-full" data-width="100%" data-size="large" data-button-type="continue_with" data-layout="" data-auto-logout-link="false" data-use-continue-as="false" onlogin="checkLoginState();"></div>
+                    <div class="fb-login-button w-full" data-width="100%" data-size="large" data-use-continue-as="true" onlogin="checkLoginState();"></div>
                 </div>
             </div>
         </div>
@@ -83,6 +83,7 @@
 import router from '@/router';
 import { setErrors, setRequiredFields } from '@/services/validation-helper';
 import { useAuthStore } from '@/stores/auth';
+import { useToastStore } from '@/stores/toast';
 import { FbTokenModel, NetworkError, RegisterModel } from '@/types';
 import { storeToRefs } from 'pinia';
 import { Ref, onMounted, ref } from 'vue';
@@ -127,11 +128,14 @@ const store = useAuthStore()
 const { register, loginFacebook, setRegisterValidations } = store
 const { registerValidations } = storeToRefs(store)
 
+const toast = useToastStore()
+const { showMessage } = toast
+
 onMounted(() => {
     setRegisterValidations().then(() => {
         setRequiredFields(requireds, registerValidations.value)
     }).catch(() => {
-        alert('Something went wrong')
+        showMessage('Something went wrong', 'danger')
     })
     window.dispatchEvent(new Event('fb-reload'))
 })
@@ -178,13 +182,18 @@ async function tryRegister() {
     }
 
     register(registerModel).then(() => {
+        showMessage('Registration successful, welcome', 'success')
         router.push({ path: 'ideas' })
     }).catch((err: NetworkError) => {
+        console.log(err)
         if (err.status === 400 && 'errors' in err) {
             setErrors(errors, err.errors)
         }
+        else if (Array.isArray(err)) {
+            showMessage(err[0], 'danger')
+        }
         else {
-            alert('Something went wrong')
+            showMessage('Something went wrong', 'alert')
         }
     })
 }
@@ -201,7 +210,7 @@ window.addEventListener('fb-response', () => {
                 setErrors(errors, err.errors)
             }
             else {
-                alert('Something went wrong')
+                showMessage('Something went wrong', 'alert')
             }
         })
     }

@@ -35,12 +35,14 @@
       </template>
     </div>
   </nav>
-  <router-view></router-view>
+  <RouterView/>
+  <Toast/>
 </template>
 
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from './stores/auth';
+import { RouterView } from 'vue-router';
 
 const store = useAuthStore()
 const { isLoggedIn } = storeToRefs(store)
