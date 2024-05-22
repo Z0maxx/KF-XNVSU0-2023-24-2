@@ -22,6 +22,18 @@ export const useToastStore = defineStore({
             }, 5000)
         },
 
+        showSuccess(message: string) {
+            this.showMessage(message, 'success')
+        },
+
+        showAlert(message: string) {
+            this.showMessage(message, 'alert')
+        },
+
+        showDanger(message: string) {
+            this.showMessage(message, 'danger')
+        },
+
         close() {
             this.displayed = false
         }
