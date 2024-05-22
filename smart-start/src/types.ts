@@ -50,3 +50,13 @@ export type Requireds = Record<string, Ref<boolean>>
 export type BadRequest = { status: 400, errors: Validations }
 
 export type NetworkError = BadRequest | { status: number }
+
+export type ToastType = 'success' | 'alert' | 'danger'
+
+export type ToastTheme = {
+    background: string
+    text: string
+    highlight: string
+}
+
+export type ToastThemes = Record<ToastType, ToastTheme>
