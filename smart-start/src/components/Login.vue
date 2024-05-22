@@ -15,7 +15,7 @@
                     </div>
                     <div class="mt-4 relative">
                         <label for="password" class="block">Password</label>
-                        <input required type="password" v-model="password" autocomplete="current-password" id="password" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
+                        <input type="password" v-model="password" autocomplete="current-password" id="password" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
                         <div v-if="passwordRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in passwordErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
@@ -27,7 +27,6 @@
                         </svg>
                         <span class="ml-1">Login</span>
                     </button>
-                    <div class="text-cyan-400" v-if="incorrect">Incorrect Username or Password</div>
                 </div>
             </form>
             <div class="w-full sm:w-80 flex flex-col">
@@ -40,7 +39,7 @@
                         </svg>
                         <span class="sr-only">Loading...</span>
                     </div>
-                    <div class="fb-login-button w-full" data-width="100%" data-size="large" data-button-type="" data-layout="" data-auto-logout-link="false" data-use-continue-as="false" onlogin="checkLoginState();"></div>
+                    <div class="fb-login-button w-full" data-width="100%" data-size="large" data-use-continue-as="true" onlogin="checkLoginState();"></div>
                 </div>
             </div>
         </div>
@@ -53,6 +52,7 @@ import { Ref, onMounted, ref } from 'vue';
 import { resetErrors, setErrors, setRequiredFields } from '@/services/validation-helper';
 import { storeToRefs } from 'pinia';
 import router from '@/router';
+import { useToastStore } from '@/stores/toast';
 
 const email = ref('')
 const password = ref('')
@@ -72,17 +72,19 @@ const requireds: Record<string, Ref<boolean>> = {
     Password: passwordRequired
 }
 
-const incorrect = ref(false)
 const store = useAuthStore()
 
 const { login, loginFacebook, setLoginValidations } = store
 const { loginValidations } = storeToRefs(store)
 
+const toast = useToastStore()
+const { showMessage } = toast
+
 onMounted(() => {
     setLoginValidations().then(() => {
         setRequiredFields(requireds, loginValidations.value)
     }).catch(() => {
-        alert('Something went wrong')
+        showMessage('Something went wrong', 'alert')
     })
     window.dispatchEvent(new Event('fb-reload'))
 })
@@ -94,14 +96,13 @@ async function tryLogin() {
     }).catch((err: NetworkError) => {
         if (err.status === 400 && 'errors' in err) {
             setErrors(errors, err.errors)
-            incorrect.value = false
         }
         else if (err.status === 401) {
-            incorrect.value = true
             resetErrors(errors)
+            showMessage('Incorrect Email or Password', 'danger')
         }
         else {
-            alert('Something went wrong')
+            showMessage('Something went wrong', 'alert')
         }
     })
 }
@@ -113,13 +114,8 @@ window.addEventListener('fb-response', () => {
         expiration.setSeconds(expiration.getSeconds() + res.authResponse.expiresIn)
         loginFacebook({ token: res.authResponse.accessToken, expiration: expiration.toISOString() }).then(() => {
             router.push({ path: 'ideas' })
-        }).catch((err: NetworkError) => {
-            if (err.status === 400 && 'errors' in err) {
-                setErrors(errors, err.errors)
-            }
-            else {
-                alert('Something went wrong')
-            }
+        }).catch(() => {
+            showMessage('Something went wrong', 'alert')
         })
     }
 })
