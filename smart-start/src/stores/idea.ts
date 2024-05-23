@@ -1,54 +1,35 @@
-import { Idea } from '@/types'
-import { defineStore, storeToRefs } from 'pinia'
-import { useAuthStore } from './auth'
-import { ref } from 'vue'
+import { Idea, IdeaLLP } from '@/types'
+import { defineStore } from 'pinia'
+import { crudStore } from './crud-store'
 
-const api = 'https://localhost:7256/Api/'
+const model = 'Idea'
 
-export const useIdeaStore = defineStore('Idea', () => {
-    const ideas = ref<Array<Idea>>([])
-    const auth = useAuthStore()
-    const { headersWithBearer } = storeToRefs(auth)
+export const useIdeaStore = defineStore(model, () => {
+    const crud = crudStore()
+    const { getItem, getItems, createItem, updateItem, deleteItem } = crud
+   
 
     async function getIdea(id: string) {
-        return await fetch(api + 'GetIdea/' + id, {
-            method: 'get',
-            headers: headersWithBearer.value
-        })
+        return await getItem<IdeaLLP>(model, id)
     }
 
     async function getIdeas() {
-        ideas.value = []
-        const res = await fetch(api + 'GetIdeas')
-        
-        ideas.value = await res.json()
+        return await getItems<Idea>(model)
     }
 
     async function createIdea(idea: Idea) {
-        await fetch(api + 'CreateIdea', {
-            method: 'post',
-            headers: headersWithBearer.value,
-            body: JSON.stringify(idea)
-        })
+        return await createItem(model, idea)
     }
 
     async function updateIdea(idea: Idea) {
-        await fetch(api + 'UpdateIdea/' + idea.id, {
-            method: 'put',
-            headers: headersWithBearer.value,
-            body: JSON.stringify(idea)
-        }) 
+        return await updateItem(model, idea)
     }
 
-    async function deleteIdea(id: string) {
-        await fetch(api + 'DeleteIdea/' + id, {
-            method: 'delete',
-            headers: headersWithBearer.value,
-        })
+    async function deleteIdea(idea: Idea) {
+        return await deleteItem(model, idea)
     }
 
     return {
-        ideas,
         getIdea,
         getIdeas,
         createIdea,
