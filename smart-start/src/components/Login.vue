@@ -47,7 +47,7 @@
 </template>
 <script lang="ts" setup>
 import router from '@/router';
-import { resetErrors, setErrors, setRequiredFields } from '@/services/validation-helper';
+import { useValidation } from '@/composables/validation';
 import { useAuthStore } from '@/stores/auth';
 import { useToastStore } from '@/stores/toast';
 import { FbTokenModel, FetchError, LoginModel } from '@/types';
@@ -72,6 +72,9 @@ const requireds: Record<string, Ref<boolean>> = {
     Email: emailRequired,
     Password: passwordRequired
 }
+
+const validation = useValidation()
+const { setRequiredFields, setErrors, resetErrors } = validation
 
 const store = useAuthStore()
 const { login, loginFacebook, setLoginValidations } = store

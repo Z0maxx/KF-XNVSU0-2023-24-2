@@ -81,7 +81,7 @@
 </template>
 <script lang="ts" setup>
 import router from '@/router';
-import { setErrors, setRequiredFields } from '@/services/validation-helper';
+import { useValidation } from '@/composables/validation';
 import { useAuthStore } from '@/stores/auth';
 import { useToastStore } from '@/stores/toast';
 import { FbTokenModel, FetchError, RegisterModel } from '@/types';
@@ -123,6 +123,9 @@ const requireds: Record<string, Ref<boolean>> = {
 }
 
 const preview = ref<HTMLImageElement>(document.createElement('img'))
+
+const validation = useValidation()
+const { setRequiredFields, setErrors } = validation
 
 const store = useAuthStore()
 
