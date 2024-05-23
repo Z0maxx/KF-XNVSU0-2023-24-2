@@ -42,6 +42,7 @@ export const useToastStore = defineStore('Toast', () => {
         setMessage,
         showSuccess,
         showAlert,
-        showDanger
+        showDanger,
+        close
     }
 })
