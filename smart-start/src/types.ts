@@ -42,6 +42,12 @@ export type SiteUser = TableModel & {
     roles?: Array<string>
 }
 
+export type SiteUserLLP = SiteUser & {
+    ideas: Array<Idea>
+    ratings: Array<Rating>
+    comments: Array<Comment>
+}
+
 export type Validations = Record<string, Array<string>>
 
 export type Errors = Record<string, Ref<Array<string>>>
@@ -74,4 +80,24 @@ export type Idea = {
     ideaRating: number,
     priceRating: number
     owner: SiteUser
+}
+
+export type IdeaLLP = Idea & {
+    comments: Array<Comment>
+    ratings: Array<Rating>
+}
+
+export type Comment = {
+    id: string
+    ownerId: string
+    ideaId: string
+    message: string
+}
+
+export type Rating = {
+    id: string,
+    ideaId: string
+    ownerId: string
+    priceRating: number
+    ideaRating: number
 }
