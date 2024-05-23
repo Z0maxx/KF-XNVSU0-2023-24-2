@@ -35,7 +35,7 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const store = useAuthStore()
-  store.setTokenModel()
+  
   if (store.isLoggedIn && (to.name === 'login' || to.name === 'register')) {
     return { name: 'home' }
   }

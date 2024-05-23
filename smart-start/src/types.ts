@@ -25,7 +25,7 @@ export type FbTokenModel = {
         accessToken: string,
         signedRequest: string,
         graphDomain: string,
-        data_access_expiration_time: 1724065133
+        data_access_expiration_time: number
     },
     status: string
 }
@@ -34,7 +34,8 @@ export type TableModel = {
     id: string
 }
 
-export type SiteUser = TableModel & LoginModel & {
+export type SiteUser = TableModel & {
+    email: string
     firstName?: string
     lastName?: string
     username?: string

@@ -1,34 +1,39 @@
 import { defineStore } from "pinia";
+import { ref } from "vue";
 
 let resolve: (value: (boolean | PromiseLike<boolean>)) => void
 
-export const usePopupStore = defineStore({
-    id: 'Popup',
-    state: () => ({
-        title: '' as string,
-        description: '' as string,
-        displayed: false as boolean
-    }),
+export const usePopupStore = defineStore('Popup', () => {
+    const title = ref<string>('')
+    const description = ref<string>('')
+    const displayed = ref<boolean>(false)
 
-    actions: {
-        async askConfirmation(title: string, description: string): Promise<boolean> {
-            this.title = title
-            this.description = description
-            this.displayed = true
+    async function askConfirmation(newTitle: string, newDescription: string): Promise<boolean> {
+        title.value = newTitle
+        description.value = newDescription
+        displayed.value = true
 
-            return new Promise((res) => {
-                resolve = res
-            })
-        },
+        return new Promise((res) => {
+            resolve = res
+        })
+    }
 
-        cancel() {
-            resolve(false)
-            this.displayed = false
-        },
+    function cancel() {
+        resolve(false)
+        displayed.value = false
+    }
 
-        confirm() {
-            resolve(true)
-            this.displayed = false
-        }
+    function confirm() {
+        resolve(true)
+        displayed.value = false
+    }
+
+    return {
+        title,
+        description,
+        displayed,
+        askConfirmation,
+        cancel,
+        confirm
     }
 })
