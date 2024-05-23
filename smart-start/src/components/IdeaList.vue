@@ -43,20 +43,21 @@
             </div>
         </div>
         <div v-for="idea in ideas" :key="idea.id">
-            <Idea :idea="idea" :display-owner="true" :display-title="true" :display-details="true" :display-ideas-by="true"/>
+            <IdeaComponent :idea="idea" :display-owner="true" :display-title="true" :display-details="true" :display-ideas-by="true" />
         </div>
     </div>
 </template>
 <script lang="ts" setup>
-import Idea from "./Idea.vue";
+import { default as IdeaComponent } from "./Idea.vue";
 import { usePageToastMessages } from "@/composables/page-toast-messages";
 import { useIdeaStore } from "@/stores/idea";
-import { storeToRefs } from "pinia";
+import { Idea } from "@/types";
 import { onMounted, ref } from "vue";
+
+const ideas = ref<Array<Idea>>([])
 
 const store = useIdeaStore()
 const { getIdeas } = store
-const { ideas } = storeToRefs(store)
 
 const pageToastMessages = usePageToastMessages()
 const { showConnectionError } = pageToastMessages
@@ -65,7 +66,10 @@ const isLoading = ref(true)
 
 onMounted(() => {
     getIdeas()
-        .then(() => isLoading.value = false)
+        .then((res) => {
+            ideas.value = res
+            isLoading.value = false
+        })
         .catch(() => {
             showConnectionError()
         })
