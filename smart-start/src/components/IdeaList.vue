@@ -43,7 +43,7 @@
             </div>
         </div>
         <div v-for="idea in ideas" :key="idea.id">
-            <Idea :idea="idea" :display-owner="true" :display-details="true" :display-ideas-by="true"/>
+            <Idea :idea="idea" :display-owner="true" :display-title="true" :display-details="true" :display-ideas-by="true"/>
         </div>
     </div>
 </template>

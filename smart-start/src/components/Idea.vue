@@ -8,7 +8,7 @@
                     </div>
                     <span class="font-medium">{{ idea.owner.firstName }} {{ idea.owner.lastName }}</span>
                 </router-link>
-                <h2 v-if="!displayOwner" class="text-xl font-bold">{{ idea.title }}</h2>
+                <h2 v-if="!displayOwner && displayTitle" class="text-xl font-bold">{{ idea.title }}</h2>
                 <div v-if="currentUser?.id === idea.ownerId" class="size-6 relative">
                     <button @click="toggleMenu" class="rounded-full bg-lime-200 hover:bg-lime-300 size-6">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-lime-800">
@@ -31,7 +31,7 @@
                     </div>
                 </div>
             </div>
-            <h2 v-if="displayOwner" class="text-xl font-bold">{{ idea.title }}</h2>
+            <h2 v-if="displayOwner && displayTitle" class="text-xl font-bold">{{ idea.title }}</h2>
             <div>
                 <div>Idea: {{ idea.ideaRating }}</div>
                 <div class="flex">
@@ -107,8 +107,9 @@ import { storeToRefs } from 'pinia';
 
 const showMenu = ref(false)
 const props = defineProps<{
-    displayOwner: boolean,
-    displayDetails: boolean,
+    displayOwner: boolean
+    displayTitle: boolean
+    displayDetails: boolean
     displayIdeasBy: boolean
     idea: Idea
 }>()
