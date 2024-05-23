@@ -1,41 +1,47 @@
 import { ToastType } from "@/types";
 import { defineStore } from "pinia";
+import { ref } from "vue";
 
 let timeout = 0
 
-export const useToastStore = defineStore({
-    id: 'Toast',
-    state: () => ({
-        message: '' as string,
-        displayed: false as boolean,
-        type: 'success' as ToastType
-    }),
+export const useToastStore = defineStore('Toast', () => {
+    const message = ref<string>('')
+    const displayed = ref<boolean>(false)
+    const type = ref<ToastType>('success')
 
-    actions: {
-        showMessage(message: string, type: ToastType) {
-            this.message = message
-            this.type = type
-            this.displayed = true
-            clearTimeout(timeout)
-            timeout = setTimeout(() => {
-                this.close()
-            }, 5000)
-        },
+    function setMessage(newMessage: string, newType: ToastType) {
+        message.value = newMessage
+        type.value = newType
+        displayed.value = true
+        clearTimeout(timeout)
+        timeout = setTimeout(() => {
+            close()
+        }, 5000)
+    }
 
-        showSuccess(message: string) {
-            this.showMessage(message, 'success')
-        },
+    function showSuccess(message: string) {
+        setMessage(message, 'success')
+    }
 
-        showAlert(message: string) {
-            this.showMessage(message, 'alert')
-        },
+    function showAlert(message: string) {
+        setMessage(message, 'alert')
+    }
 
-        showDanger(message: string) {
-            this.showMessage(message, 'danger')
-        },
+    function showDanger(message: string) {
+        setMessage(message, 'danger')
+    }
 
-        close() {
-            this.displayed = false
-        }
+    function close() {
+        displayed.value = false
+    }
+
+    return {
+        message,
+        displayed,
+        type,
+        setMessage,
+        showSuccess,
+        showAlert,
+        showDanger
     }
 })
