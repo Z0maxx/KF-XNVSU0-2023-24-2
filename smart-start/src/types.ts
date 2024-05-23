@@ -52,6 +52,8 @@ export type BadRequest = { status: 400, errors: Validations }
 
 export type NetworkError = BadRequest | { status: number }
 
+export type FetchError = NetworkError | object
+
 export type ToastType = 'success' | 'alert' | 'danger'
 
 export type ToastTheme = {

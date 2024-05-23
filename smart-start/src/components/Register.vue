@@ -84,9 +84,10 @@ import router from '@/router';
 import { setErrors, setRequiredFields } from '@/services/validation-helper';
 import { useAuthStore } from '@/stores/auth';
 import { useToastStore } from '@/stores/toast';
-import { FbTokenModel, NetworkError, RegisterModel } from '@/types';
+import { FbTokenModel, FetchError, RegisterModel } from '@/types';
 import { storeToRefs } from 'pinia';
 import { Ref, onMounted, ref } from 'vue';
+import { usePageToastMessages } from '@/composables/page-toast-messages';
 
 const email = ref('')
 const password = ref('')
@@ -129,13 +130,15 @@ const { register, loginFacebook, setRegisterValidations } = store
 const { registerValidations } = storeToRefs(store)
 
 const toast = useToastStore()
-const { showAlert, showDanger, showSuccess } = toast
+const { showDanger, showSuccess } = toast
+const pageToastMessages = usePageToastMessages()
+const { showDefaultError, showConnectionError } = pageToastMessages
 
 onMounted(() => {
     setRegisterValidations().then(() => {
         setRequiredFields(requireds, registerValidations.value)
     }).catch(() => {
-        showDanger('Something went wrong')
+        showConnectionError()
     })
     window.dispatchEvent(new Event('fb-reload'))
 })
@@ -184,15 +187,20 @@ async function tryRegister() {
     register(registerModel).then(() => {
         showSuccess('Registration successful, welcome')
         router.push({ path: 'ideas' })
-    }).catch((err: NetworkError) => {
-        if (err.status === 400 && 'errors' in err) {
-            setErrors(errors, err.errors)
-        }
-        else if (Array.isArray(err)) {
-            showDanger(err[0])
+    }).catch((err: FetchError) => {
+        if ('status' in err) {
+            if (err.status === 400 && 'errors' in err) {
+                setErrors(errors, err.errors)
+            }
+            else if (Array.isArray(err)) {
+                showDanger(err[0])
+            }
+            else {
+                showDefaultError()
+            }
         }
         else {
-            showAlert('Something went wrong')
+            showConnectionError()
         }
     })
 }
@@ -204,12 +212,17 @@ window.addEventListener('fb-response', () => {
         expiration.setSeconds(expiration.getSeconds() + res.authResponse.expiresIn)
         loginFacebook({ token: res.authResponse.accessToken, expiration: expiration.toISOString() }).then(() => {
             router.push({ path: 'ideas' })
-        }).catch((err: NetworkError) => {
-            if (err.status === 400 && 'errors' in err) {
-                setErrors(errors, err.errors)
+        }).catch((err: FetchError) => {
+            if ('status' in err) {
+                if (err.status === 400 && 'errors' in err) {
+                    setErrors(errors, err.errors)
+                }
+                else {
+                    showDefaultError()
+                }
             }
             else {
-                showAlert('Something went wrong')
+                showConnectionError()
             }
         })
     }
