@@ -63,3 +63,15 @@ export type ToastTheme = {
 }
 
 export type ToastThemes = Record<ToastType, ToastTheme>
+
+export type Idea = {
+    id: string
+    ownerId: string
+    title: string
+    description: string
+    price: number
+    priceUnit: string,
+    ideaRating: number,
+    priceRating: number
+    owner: SiteUser
+}
