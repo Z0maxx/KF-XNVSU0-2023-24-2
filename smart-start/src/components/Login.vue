@@ -46,13 +46,14 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { useAuthStore } from '@/stores/auth';
-import { FbTokenModel, LoginModel, NetworkError } from '@/types';
-import { Ref, onMounted, ref } from 'vue';
-import { resetErrors, setErrors, setRequiredFields } from '@/services/validation-helper';
-import { storeToRefs } from 'pinia';
 import router from '@/router';
+import { resetErrors, setErrors, setRequiredFields } from '@/services/validation-helper';
+import { useAuthStore } from '@/stores/auth';
 import { useToastStore } from '@/stores/toast';
+import { FbTokenModel, FetchError, LoginModel } from '@/types';
+import { storeToRefs } from 'pinia';
+import { Ref, onMounted, ref } from 'vue';
+import { usePageToastMessages } from '@/composables/page-toast-messages';
 
 const email = ref('')
 const password = ref('')
@@ -73,19 +74,19 @@ const requireds: Record<string, Ref<boolean>> = {
 }
 
 const store = useAuthStore()
-
 const { login, loginFacebook, setLoginValidations } = store
 const { loginValidations } = storeToRefs(store)
 
 const toast = useToastStore()
-const { showAlert, showDanger } = toast
-const defaultError = 'Something went wrong'
+const { showDanger } = toast
+const pageToastMessages = usePageToastMessages()
+const { showDefaultError, showConnectionError } = pageToastMessages
 
 onMounted(() => {
     setLoginValidations().then(() => {
         setRequiredFields(requireds, loginValidations.value)
     }).catch(() => {
-        showAlert(defaultError)
+        showConnectionError()
     })
     window.dispatchEvent(new Event('fb-reload'))
 })
@@ -94,16 +95,21 @@ async function tryLogin() {
     const loginModel: LoginModel = { email: email.value, password: password.value }
     login(loginModel).then(() => {
         router.push({ path: 'ideas' })
-    }).catch((err: NetworkError) => {
-        if (err.status === 400 && 'errors' in err) {
-            setErrors(errors, err.errors)
-        }
-        else if (err.status === 401) {
-            resetErrors(errors)
-            showDanger('Incorrect Email or Password')
+    }).catch((err: FetchError) => {
+        if ('status' in err) {
+            if (err.status === 400 && 'errors' in err) {
+                setErrors(errors, err.errors)
+            }
+            else if (err.status === 401) {
+                resetErrors(errors)
+                showDanger('Incorrect Email or Password')
+            }
+            else  {
+                showDefaultError()
+            }
         }
         else {
-            showAlert(defaultError)
+            showConnectionError()
         }
     })
 }
@@ -115,8 +121,13 @@ window.addEventListener('fb-response', () => {
         expiration.setSeconds(expiration.getSeconds() + res.authResponse.expiresIn)
         loginFacebook({ token: res.authResponse.accessToken, expiration: expiration.toISOString() }).then(() => {
             router.push({ path: 'ideas' })
-        }).catch(() => {
-            showAlert(defaultError)
+        }).catch((err: FetchError) => {
+            if (typeof err === 'string') {
+                showConnectionError()
+            }
+            else {
+                showDefaultError()
+            }
         })
     }
 })
