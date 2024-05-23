@@ -1,4 +1,4 @@
-import { IdeaLLP, TableModel } from "@/types";
+import { TableModel } from "@/types";
 import { defineStore, storeToRefs } from "pinia";
 import { useAuthStore } from "./auth";
 
@@ -38,6 +38,14 @@ export const crudStore = defineStore('Crud', () => {
         })
     }
 
+    async function submitItem<T extends TableModel>(model: string, item: T) {
+        await fetch(`${api}/Submit${model}/`, {
+            method: 'put',
+            headers: headersWithBearer.value,
+            body: JSON.stringify(item)
+        })
+    }
+
     async function deleteItem<T extends TableModel>(model: string, item: T) {
         await fetch(`${api}/Delete${model}/${item.id}`, {
             method: 'delete',
@@ -50,6 +58,7 @@ export const crudStore = defineStore('Crud', () => {
         getItems,
         createItem,
         updateItem,
+        submitItem,
         deleteItem
     }
 })
