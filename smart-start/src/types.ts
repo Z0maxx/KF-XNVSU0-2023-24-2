@@ -83,8 +83,8 @@ export type Idea = {
 }
 
 export type IdeaLLP = Idea & {
-    comments: Array<Comment>
-    ratings: Array<Rating>
+    comments: Array<CommentLLP>
+    ratings: Array<RatingLLP>
 }
 
 export type Comment = {
@@ -94,10 +94,23 @@ export type Comment = {
     message: string
 }
 
+export type CommentLLP = Comment & {
+    owner: SiteUser
+}
+
 export type Rating = {
     id: string,
     ideaId: string
     ownerId: string
     priceRating: number
     ideaRating: number
+}
+
+export type RatingLLP = Rating & {
+    owner: SiteUser
+}
+
+export type ChartData = {
+    name: string | number
+    value: string | number
 }
