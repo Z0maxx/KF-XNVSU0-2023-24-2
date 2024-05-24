@@ -1,6 +1,5 @@
-
 import { removeItem, setItem, setRef } from "@/services/ref-local-storage-service";
-import { LoginModel, NetworkError, RegisterModel, SiteUser, TokenModel, Validations } from "@/types";
+import { FetchError, LoginModel, RegisterModel, SiteUser, TokenModel, Validations } from "@/types";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
@@ -94,9 +93,11 @@ export const useAuthStore = defineStore('Auth', () => {
     }
 
     async function setLoginValidations(): Promise<void> {
-        await login({ email: '', password: '' }).catch((err: NetworkError) => {
-            if (err.status === 400 && 'errors' in err) {
-                loginValidations.value = err.errors as Validations
+        if (loginValidations.value !== undefined) return
+
+        await login({ email: '', password: '' }).catch((err: FetchError) => {
+            if ('errors' in err && err.status === 400) {
+                loginValidations.value = err.errors
             }
             else {
                 throw err
@@ -105,15 +106,17 @@ export const useAuthStore = defineStore('Auth', () => {
     }
 
     async function setRegisterValidations(): Promise<void> {
+        if (registerValidations.value !== undefined) return
+
         await register({
             email: '',
             password: '',
             userName: '',
             firstName: '',
             lastName: ''
-        }).catch((err: NetworkError) => {
-            if (err.status === 400 && 'errors' in err) {
-                registerValidations.value = err.errors as Validations
+        }).catch((err: FetchError) => {
+            if ('errors' in err && err.status === 400) {
+                registerValidations.value = err.errors
             }
             else {
                 throw err
