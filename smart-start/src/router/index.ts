@@ -5,6 +5,7 @@ import Logout from "@/components/Logout.vue";
 import Register from "@/components/Register.vue";
 import { useAuthStore } from "@/stores/auth";
 import IdeaList from "@/components/IdeaList.vue";
+import IdeaDetails from "@/components/IdeaDetails.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -31,6 +32,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/ideas',
     name: 'ideas',
     component: IdeaList
+  },
+  {
+    path: '/idea/:id',
+    name: 'idea',
+    component: IdeaDetails
   }
 ]
 
