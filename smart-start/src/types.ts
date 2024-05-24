@@ -87,8 +87,14 @@ export type IdeaLLP = Idea & {
     ratings: Array<RatingLLP>
 }
 
-export type Comment = {
-    id: string
+export type FormIdea = TableModel & {
+    title: string
+    description: string
+    price: number
+    priceUnit: string
+}
+
+export type Comment = TableModel & {
     ownerId: string
     ideaId: string
     message: string
@@ -98,8 +104,7 @@ export type CommentLLP = Comment & {
     owner: SiteUser
 }
 
-export type Rating = {
-    id: string,
+export type Rating = TableModel & {
     ideaId: string
     ownerId: string
     priceRating: number
