@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
+import { createRouter, createWebHistory, RouteRecordName, RouteRecordRaw } from "vue-router";
 import Home from "@/components/Home.vue";
 import Login from "@/components/Login.vue";
 import Logout from "@/components/Logout.vue";
@@ -51,12 +51,38 @@ const router = createRouter({
   routes,
 })
 
+const loggedInGuards: Record<0 | 1, { routeNames: Array<RouteRecordName>, redirectoTo: string }> = {
+  0: {
+    routeNames: [
+      'account',
+      'logout',
+      'create-idea',
+      'update-idea'
+    ],
+    redirectoTo: 'login'
+  },
+  1: {
+    routeNames: [
+      'login',
+      'register',
+    ],
+    redirectoTo: 'home'
+  },
+}
+
 router.beforeEach((to) => {
+  const name = to.name
+  if (!name) throw new Error('No route name')
+
   const store = useAuthStore()
+
+  const isLoggedIn = store.isLoggedIn ? 1 : 0
+  const loggedInGuard = loggedInGuards[isLoggedIn]
   
-  if (store.isLoggedIn && (to.name === 'login' || to.name === 'register' || to.name === 'account')) {
-    return { name: 'home' }
+  if (loggedInGuard && loggedInGuard.routeNames.includes(name)) {
+    return { name: loggedInGuard.redirectoTo }
   }
+
   return true
 })
 
