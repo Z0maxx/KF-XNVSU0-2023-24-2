@@ -6,6 +6,7 @@ import Register from "@/components/Register.vue";
 import { useAuthStore } from "@/stores/auth";
 import IdeaList from "@/components/IdeaList.vue";
 import IdeaDetails from "@/components/IdeaDetails.vue";
+import Account from "@/components/Account.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -29,6 +30,11 @@ const routes: Array<RouteRecordRaw> = [
     component: Register
   },
   {
+    path: '/account',
+    name: 'account',
+    component: Account
+  },
+  {
     path: '/ideas',
     name: 'ideas',
     component: IdeaList
@@ -48,7 +54,7 @@ const router = createRouter({
 router.beforeEach((to) => {
   const store = useAuthStore()
   
-  if (store.isLoggedIn && (to.name === 'login' || to.name === 'register')) {
+  if (store.isLoggedIn && (to.name === 'login' || to.name === 'register' || to.name === 'account')) {
     return { name: 'home' }
   }
   return true

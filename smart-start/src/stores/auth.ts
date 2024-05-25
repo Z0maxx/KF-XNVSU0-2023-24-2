@@ -1,5 +1,5 @@
 import { removeItem, setItem, setRef } from "@/services/ref-local-storage-service";
-import { FetchError, LoginModel, RegisterModel, SiteUser, TokenModel, Validations } from "@/types";
+import { FetchError, LoginModel, RegisterModel, SiteUser, TokenModel, UpdateProfileModel, Validations } from "@/types";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
@@ -37,11 +37,10 @@ function fetchAuth(endpoint: string, payload: unknown): Promise<Response> {
     })
 }
 
-
-
 export const useAuthStore = defineStore('Auth', () => {
     const loginValidations = ref<Validations | undefined>(undefined)
     const registerValidations = ref<Validations | undefined>(undefined)
+    const updateProfileValidations = ref<Validations | undefined>(undefined)
     const tokenModel = ref<TokenModel | undefined>(undefined)
     const currentUser = ref<SiteUser | undefined>(undefined)
     setRef(tokenModelKey, tokenModel)
@@ -68,8 +67,8 @@ export const useAuthStore = defineStore('Auth', () => {
         setItem(currentUserKey, await convertToJson(res), currentUser)
     }
 
-    async function login(loginModel: LoginModel): Promise<void> {
-        const res = await fetchAuth('Login', loginModel)
+    async function login(model: LoginModel): Promise<void> {
+        const res = await fetchAuth('Login', model)
         await setup(res)
     }
 
@@ -87,9 +86,24 @@ export const useAuthStore = defineStore('Auth', () => {
         }
     }
 
-    async function register(registerModel: RegisterModel): Promise<void> {
-        const res = await fetchAuth('Register', registerModel)
+    async function register(model: RegisterModel): Promise<void> {
+        const res = await fetchAuth('Register', model)
         await setup(res)
+    }
+
+    async function updateProfile(model: UpdateProfileModel): Promise<void> {
+        let res = await fetch(api + 'UpdateProfile', {
+            method: 'put',
+            headers: headersWithBearer.value,
+            body: JSON.stringify(model)
+        })
+
+        if (!res.ok) await convertToJson(res)
+
+        res = await fetch(api + 'GetUserInfos', {
+            headers: headersWithBearer.value
+        })
+        setItem(currentUserKey, await convertToJson(res), currentUser)
     }
 
     async function setLoginValidations(): Promise<void> {
@@ -124,18 +138,38 @@ export const useAuthStore = defineStore('Auth', () => {
         })
     }
 
+    async function setUpdateProfileValidations(): Promise<void> {
+        if (updateProfileValidations.value !== undefined) return
+
+        await updateProfile({
+            userName: '',
+            firstName: '',
+            lastName: ''
+        }).catch((err: FetchError) => {
+            if ('errors' in err && err.status === 400) {
+                updateProfileValidations.value = err.errors
+            }
+            else {
+                throw err
+            }
+        })
+    }
+
     return {
         isLoggedIn,
         tokenModel,
         currentUser,
         loginValidations,
         registerValidations,
+        updateProfileValidations,
         headersWithBearer,
         login,
         loginFacebook,
         logout,
         register,
+        updateProfile,
         setLoginValidations,
-        setRegisterValidations
+        setRegisterValidations,
+        setUpdateProfileValidations
     }
 })
