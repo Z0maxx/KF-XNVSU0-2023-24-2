@@ -2,27 +2,27 @@ import { TableModel } from "@/types";
 import { defineStore, storeToRefs } from "pinia";
 import { useAuthStore } from "./auth";
 
-const api = 'https://localhost:7256/Api'
-
-async function convertToJson(res: Response): Promise<object> {
-    let json
-    try {
-        json = await res.json()
-    }
-    catch {
-        throw res
-    }
-    if (!res.ok) throw json
-    return json
-}
-
-async function checkForError(res: Response): Promise<void> {
-    if (!res.ok) await convertToJson(res)
-}
-
 export const crudStore = defineStore('Crud', () => {
+    const api = 'https://localhost:7256/Api'
+
     const auth = useAuthStore()
     const { headersWithBearer } = storeToRefs(auth)
+
+    async function convertToJson(res: Response): Promise<object> {
+        let json
+        try {
+            json = await res.json()
+        }
+        catch {
+            throw res
+        }
+        if (!res.ok) throw json
+        return json
+    }
+    
+    async function checkForError(res: Response): Promise<void> {
+        if (!res.ok) await convertToJson(res)
+    }
 
     async function getItem<T extends TableModel>(model: string, id: string) {
         const res = await fetch(`${api}/Get${model}/${id}`)
@@ -74,6 +74,9 @@ export const crudStore = defineStore('Crud', () => {
     }
 
     return {
+        api,
+        convertToJson,
+        checkForError,
         getItem,
         getItems,
         createItem,
