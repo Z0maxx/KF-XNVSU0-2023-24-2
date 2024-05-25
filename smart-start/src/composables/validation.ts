@@ -41,7 +41,7 @@ export function useValidation() {
         let max = ''
         let min = ''
         split.forEach(word => {
-            if (parseFloat(word)) {
+            if (parseFloat(word.replace(',', '.'))) {
                 if (max === '') max = word
                 else {
                     min = max
