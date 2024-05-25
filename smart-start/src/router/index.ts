@@ -5,6 +5,7 @@ import Logout from "@/components/Logout.vue";
 import Register from "@/components/Register.vue";
 import { useAuthStore } from "@/stores/auth";
 import IdeaList from "@/components/IdeaList.vue";
+import IdeaListBy from "@/components/IdeaListBy.vue";
 import IdeaDetails from "@/components/IdeaDetails.vue";
 import Account from "@/components/Account.vue";
 
@@ -38,6 +39,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/ideas',
     name: 'ideas',
     component: IdeaList
+  },
+  {
+    path: '/ideas-by/:userId',
+    name: 'ideas-by',
+    component: IdeaListBy
   },
   {
     path: '/idea/:id',
