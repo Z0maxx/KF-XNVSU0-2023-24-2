@@ -13,7 +13,7 @@ export const useCommentStore = defineStore(model, () => {
     async function setCommentValidations() {
         if (commentValidations.value !== undefined) return
 
-        submitComment({
+        await submitComment({
             id: '',
             ideaId: '',
             ownerId: '',
