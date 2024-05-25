@@ -2,7 +2,7 @@
     <div v-show="displayed" class="fixed inset-0 z-50 h-svh w-screen flex items-center justify-center before:absolute before:w-full backdrop-blur-sm">
         <div class="relative p-4 w-full max-w-lg">
             <div class="relative shadow">
-                <div class="bg-cyan-600 p-4 border-x-2 border-top-2 border-cyan-800 rounded-t-lg">
+                <div class="bg-cyan-600 p-4 border-x-2 border-t-2 border-cyan-800 rounded-t-lg">
                     <h3 class="mb-3 text-2xl font-medium">{{ title }}</h3>
                     <p>{{ description }}</p>
                 </div>
