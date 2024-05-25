@@ -21,11 +21,11 @@ export const useIdeaStore = defineStore(model, () => {
     async function setIdeaValidations() {
         if (ideaValidations.value !== undefined) return
 
-        createIdea({
+        await createIdea({
             id: '',
             title: '',
             description: '',
-            price: 0,
+            price: undefined,
             priceUnit: ''
         }).catch((err: FetchError) => {
             if ('errors' in err && err.status === 400) {
