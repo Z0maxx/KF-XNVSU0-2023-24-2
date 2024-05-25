@@ -261,7 +261,7 @@ const popup = usePopupStore()
 const { askConfirmation } = popup
 
 const toast = useToastStore()
-const { showSuccess } = toast
+const { showSuccess, showAlert } = toast
 
 async function tryDeleteRating(rating: Rating) {
     if (await askConfirmation('Delete Rating', 'Are you sure you want to delete this Rating?')) {
@@ -414,11 +414,22 @@ onMounted(() => {
     getIdea(id).then((res) => {
         isLoading.value = false
         idea.value = res
+
         displayCharts()
-        setDefaultValues()
-        setCommentValidations()
-    }).catch(() => {
-        showConnectionError()
+        if (currentUser.value) {
+            setDefaultValues()
+            setCommentValidations()
+        }
+    }).catch((err: FetchError) => {
+        if ('status' in err) {
+            showDefaultError()
+        }
+        else if ('message' in err && typeof err.message === 'string') {
+            showAlert(err.message)
+        }
+        else {
+            showConnectionError()
+        }
     })
 })
 </script>
