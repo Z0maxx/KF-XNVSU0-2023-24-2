@@ -49,6 +49,11 @@ export const useAuthStore = defineStore('Auth', () => {
     const isLoggedIn = computed(() => {
         return tokenModel.value !== undefined
     })
+
+    const isModerator = computed(() => {
+        return currentUser.value?.roles?.includes('Moderator')
+    })
+
     const headersWithBearer = computed(() => {
         const token = tokenModel.value?.token
         if (!token) throw new Error('No token')
@@ -159,6 +164,7 @@ export const useAuthStore = defineStore('Auth', () => {
         isLoggedIn,
         tokenModel,
         currentUser,
+        isModerator,
         loginValidations,
         registerValidations,
         updateProfileValidations,
