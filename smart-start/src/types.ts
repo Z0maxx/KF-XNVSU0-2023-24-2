@@ -5,13 +5,15 @@ export type LoginModel = {
     password: string
 }
 
-export type RegisterModel = LoginModel & {
+export type UpdateProfileModel = {
     userName: string,
     firstName: string,
     lastName: string,
     profilePictureContentType?: string,
     profilePictureData?: string
 }
+
+export type RegisterModel = LoginModel & UpdateProfileModel
 
 export type TokenModel = {
     token: string
@@ -38,7 +40,7 @@ export type SiteUser = TableModel & {
     email: string
     firstName?: string
     lastName?: string
-    username?: string
+    userName?: string
     roles?: Array<string>
 }
 
