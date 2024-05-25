@@ -51,6 +51,7 @@
 </template>
 <script lang="ts" setup>
 import { usePageToastMessages } from '@/composables/page-toast-messages';
+import { useRefValueConveter } from '@/composables/ref-value-converter';
 import { useValidation } from '@/composables/validation';
 import { useIdeaStore } from '@/stores/idea';
 import { useToastStore } from '@/stores/toast';
@@ -60,7 +61,7 @@ import { onMounted, ref } from 'vue';
 
 const title = ref('')
 const description = ref('')
-const price = ref<number | undefined>(undefined)
+const price = ref('')
 const priceUnit = ref('')
 
 const titleErrors = ref<Array<string>>([])
@@ -92,6 +93,9 @@ const { setIdeaValidations, createIdea } = store
 const validation = useValidation()
 const { setRequiredFields, setErrors, resetErrors } = validation
 
+const converter = useRefValueConveter()
+const { convertRefToFloat } = converter
+
 const toast = useToastStore()
 const { showDanger, showSuccess } = toast
 
@@ -103,17 +107,17 @@ function tryCreateIdea() {
         id: '',
         title: title.value,
         description: description.value,
-        price: price.value,
+        price: convertRefToFloat(price),
         priceUnit: priceUnit.value
     }
 
     createIdea(model).then(() => {
         title.value = ''
         description.value = ''
-        price.value = undefined
+        price.value = ''
         priceUnit.value = ''
         resetErrors(errors)
-        showSuccess('Idea created successfully')
+        showSuccess('Created Idea successfully')
     }).catch((err: FetchError) => {
         if ('status' in err) {
             if (err.status === 400 && 'errors' in err) {
