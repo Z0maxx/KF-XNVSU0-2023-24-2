@@ -92,7 +92,7 @@ export type IdeaLLP = Idea & {
 export type FormIdea = TableModel & {
     title: string
     description: string
-    price: number
+    price: number | undefined
     priceUnit: string
 }
 
