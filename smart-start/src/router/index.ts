@@ -8,6 +8,7 @@ import IdeaList from "@/components/IdeaList.vue";
 import IdeaListBy from "@/components/IdeaListBy.vue";
 import IdeaDetails from "@/components/IdeaDetails.vue";
 import CreateIdea from "@/components/CreateIdea.vue";
+import EditIdea from "@/components/EditIdea.vue";
 import Account from "@/components/Account.vue";
 
 const routes: Array<RouteRecordRaw> = [
@@ -55,6 +56,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/create-idea',
     name: 'create-idea',
     component: CreateIdea
+  },
+  {
+    path: '/edit-idea/:id',
+    name: 'edit-idea',
+    component: EditIdea
   }
 ]
 
