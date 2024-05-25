@@ -55,6 +55,7 @@
 </template>
 <script lang="ts" setup>
 import { usePageToastMessages } from '@/composables/page-toast-messages';
+import { useRefValueConveter } from '@/composables/ref-value-converter';
 import { useValidation } from '@/composables/validation';
 import { useIdeaStore } from '@/stores/idea';
 import { useToastStore } from '@/stores/toast';
@@ -102,6 +103,9 @@ const { setIdeaValidations, updateIdea, getIdea } = store
 const validation = useValidation()
 const { setRequiredFields, setErrors, resetErrors } = validation
 
+const converter = useRefValueConveter()
+const { convertRefToFloat } = converter
+
 const toast = useToastStore()
 const { showDanger, showSuccess, showAlert } = toast
 
@@ -116,7 +120,7 @@ function tryCreateIdea() {
         id: instance.id,
         title: title.value,
         description: description.value,
-        price: price.value == '' ? undefined : parseFloat(price.value.replace(',', '.')),
+        price: convertRefToFloat(price),
         priceUnit: priceUnit.value
     }
 
