@@ -19,6 +19,12 @@
     </div>
     <div class="flex gap-4">
       <template v-if="isLoggedIn">
+        <router-link v-if="currentUser" to="/account" class="flex items-center gap-1">
+          <div class="size-6 rounded-full overflow-hidden">
+            <img :src="'https://localhost:7256/api/GetProfilePicture/' + currentUser.id" class="object-cover h-full">
+          </div>
+          <span>Account</span>
+        </router-link>
         <router-link to="/logout" class="flex items-center gap-1">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
             <path fill-rule="evenodd" d="M16.5 3.75a1.5 1.5 0 0 1 1.5 1.5v13.5a1.5 1.5 0 0 1-1.5 1.5h-6a1.5 1.5 0 0 1-1.5-1.5V15a.75.75 0 0 0-1.5 0v3.75a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V5.25a3 3 0 0 0-3-3h-6a3 3 0 0 0-3 3V9A.75.75 0 1 0 9 9V5.25a1.5 1.5 0 0 1 1.5-1.5h6Zm-5.03 4.72a.75.75 0 0 0 0 1.06l1.72 1.72H2.25a.75.75 0 0 0 0 1.5h10.94l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3a.75.75 0 0 0 0-1.06l-3-3a.75.75 0 0 0-1.06 0Z" clip-rule="evenodd" />
@@ -42,27 +48,25 @@
       </template>
     </div>
   </nav>
-  <RouterView/>
-  <Toast/>
-  <Popup/>
+  <RouterView />
+  <Toast />
+  <Popup />
 </template>
-
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from './stores/auth';
 import { RouterView } from 'vue-router';
 
 const store = useAuthStore()
-const { isLoggedIn } = storeToRefs(store)
+const { isLoggedIn, currentUser } = storeToRefs(store)
 </script>
-
 <style>
 body {
   background-color: theme("colors.emerald.900");
   color: white;
 }
 
-#app > div:first-of-type {
+#app>div:first-of-type {
   max-width: 72rem;
   margin-left: auto !important;
   margin-right: auto !important;
