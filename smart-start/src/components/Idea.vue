@@ -4,19 +4,19 @@
             <div class="flex flex-col sm:flex-row gap-2 justify-between">
                 <router-link v-if="displayOwner" :to="'/activites/' + idea.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
                     <div class="size-6 rounded-full overflow-hidden">
-                        <img :src="'https://localhost:7256/api/GetProfilePicture/' + idea.ownerId">
+                        <img :src="'https://localhost:7256/api/GetProfilePicture/' + idea.ownerId" class="object-fit h-full">
                     </div>
-                    <span class="font-medium">{{ idea.owner.firstName }} {{ idea.owner.lastName }}</span>
+                    <span class="font-medium">{{ idea.owner.userName ?? `${idea.owner.firstName} ${idea.owner.lastName}` }}</span>
                 </router-link>
                 <h2 v-if="!displayOwner && displayTitle" class="text-xl font-bold">{{ idea.title }}</h2>
-                <div v-if="currentUser?.id === idea.ownerId" class="size-6 relative">
+                <div v-if="currentUser && (currentUser.id === idea.ownerId || isModerator)" class="size-6 relative">
                     <button @click="toggleMenu" class="rounded-full bg-lime-200 hover:bg-lime-300 size-6">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-lime-800">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
                         </svg>
                     </button>
                     <div v-show="showMenu" class="p-1 bg-lime-200 absolute rounded-md top-6 sm:right-0 font-medium">
-                        <router-link :to="'/edit-idea/' + idea.id" class="flex gap-1 mb-2 text-blue-600 hover:underline">
+                        <router-link :to="'/edit-idea/' + idea.id" v-if="currentUser.id === idea.ownerId" class="flex gap-1 mb-2 text-blue-600 hover:underline">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
                                 <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z" />
                             </svg>
@@ -88,7 +88,7 @@
                         <path d="M12 .75a8.25 8.25 0 0 0-4.135 15.39c.686.398 1.115 1.008 1.134 1.623a.75.75 0 0 0 .577.706c.352.083.71.148 1.074.195.323.041.6-.218.6-.544v-4.661a6.714 6.714 0 0 1-.937-.171.75.75 0 1 1 .374-1.453 5.261 5.261 0 0 0 2.626 0 .75.75 0 1 1 .374 1.452 6.712 6.712 0 0 1-.937.172v4.66c0 .327.277.586.6.545.364-.047.722-.112 1.074-.195a.75.75 0 0 0 .577-.706c.02-.615.448-1.225 1.134-1.623A8.25 8.25 0 0 0 12 .75Z" />
                         <path fill-rule="evenodd" d="M9.013 19.9a.75.75 0 0 1 .877-.597 11.319 11.319 0 0 0 4.22 0 .75.75 0 1 1 .28 1.473 12.819 12.819 0 0 1-4.78 0 .75.75 0 0 1-.597-.876ZM9.754 22.344a.75.75 0 0 1 .824-.668 13.682 13.682 0 0 0 2.844 0 .75.75 0 1 1 .156 1.492 15.156 15.156 0 0 1-3.156 0 .75.75 0 0 1-.668-.824Z" clip-rule="evenodd" />
                     </svg>
-                    <span>Ideas By {{ idea.owner.firstName }} {{ idea.owner.lastName }}</span>
+                    <span>Ideas By {{ idea.owner.userName ?? `${idea.owner.firstName} ${idea.owner.lastName}` }}</span>
                 </router-link>
             </div>
         </div>
@@ -119,7 +119,7 @@ const store = useIdeaStore()
 const { deleteIdea } = store
 
 const auth = useAuthStore()
-const { currentUser } = storeToRefs(auth)
+const { currentUser, isModerator } = storeToRefs(auth)
 
 const popup = usePopupStore()
 const { askConfirmation } = popup

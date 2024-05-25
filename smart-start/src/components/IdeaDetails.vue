@@ -77,11 +77,10 @@
                 <div class="bg-green-700 p-2 border-2 border-green-800 rounded">
                     <div class="flex justify-between flex-wrap gap-2">
                         <h2 class="text-xl">Rating</h2>
-                        <button v-if="hasRating" @click="tryDeleteRating" class="p-1 flex gap-1 justify-center items-center bg-lime-200 rounded-md text-red-600 hover:text-red-700 font-medium">
+                        <button v-if="hasRating" @click="tryDeleteRating(userRating)" class="p-1 flex gap-1 justify-center items-center bg-lime-200 rounded-full text-red-600 hover:text-red-700 font-medium">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
                                 <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
                             </svg>
-                            <span>Delete</span>
                         </button>
                     </div>
                     <div class="mt-1">Idea</div>
@@ -106,11 +105,10 @@
                 <div class="relative p-2 bg-green-700 border-green-800 border-2 rounded w-full">
                     <div class="flex justify-between gap-2 flex-wrap">
                         <h2 class="text-xl">Comment</h2>
-                        <button v-if="hasComment" @click="tryDeleteComment" class="p-1 flex gap-1 justify-center items-center bg-lime-200 rounded-md text-red-600 hover:text-red-700 font-medium">
+                        <button v-if="hasComment" @click="tryDeleteComment(userComment)" class="p-1 flex gap-1 justify-center items-center bg-lime-200 rounded-full text-red-600 hover:text-red-700 font-medium">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
                                 <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
                             </svg>
-                            <span>Delete</span>
                         </button>
                     </div>
                     <textarea v-model="userComment.message" rows="4" class="w-full mt-1 p-1 bg-emerald-600 border-2 border-emerald-800 rounded focus:outline-blue-500"></textarea>
@@ -149,13 +147,20 @@
                             <div class="max-w-48 sm:max-w-none" ref="ideaRatingsChart"></div>
                             <div class="max-w-48 sm:max-w-none" ref="priceRatingsChart"></div>
                         </div>
-                        <div v-show="activeTab === 0" v-for="rating in idea?.ratings" :key="rating.id" class="bg-green-700 p-2 border-2 border-green-800 rounded size-max">
-                            <router-link :to="'/activites/' + rating.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
-                                <div class="size-6 rounded-full overflow-hidden">
-                                    <img :src="'https://localhost:7256/api/GetProfilePicture/' + rating.ownerId">
-                                </div>
-                                <span class="font-medium">{{ rating.owner.firstName }} {{ rating.owner.lastName }}</span>
-                            </router-link>
+                        <div v-show="activeTab === 0" v-for="rating in idea?.ratings.filter(r => r.ownerId !== currentUser?.id)" :key="rating.id" class="bg-green-700 p-2 border-2 border-green-800 rounded size-max">
+                            <div class="flex flex-col sm:flex-row gap-2 justify-between">
+                                <router-link :to="'/activites/' + rating.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
+                                    <div class="size-6 rounded-full overflow-hidden">
+                                        <img :src="'https://localhost:7256/api/GetProfilePicture/' + rating.ownerId" class="object-fit h-full">
+                                    </div>
+                                    <span class="font-medium">{{ rating.owner.userName ?? `${rating.owner.firstName} ${rating.owner.lastName}` }}</span>
+                                </router-link>
+                                <button v-if="isModerator" @click="tryDeleteRating(rating)" class="p-1 flex gap-1 justify-center items-center bg-lime-200 rounded-full text-red-600 hover:text-red-700 font-medium">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                                        <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
                             <div>Idea</div>
                             <div class="flex">
                                 <svg v-for="i in 5" :key="i" xmlns="http://www.w3.org/2000/svg" stroke="black" :fill="(i <= rating.ideaRating ? starColor(rating.ideaRating) : 'gray')" viewBox="0 0 24 24" stroke-width="1" class="size-8">
@@ -170,13 +175,20 @@
                             </div>
                         </div>
                     </div>
-                    <div v-show="activeTab === 1" v-for="comment in idea?.comments" :key="comment.id" class="w-full bg-green-700 p-2 border-2 border-green-800 rounded">
-                        <router-link :to="'/activites/' + comment.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
-                            <div class="size-6 rounded-full overflow-hidden">
-                                <img :src="'https://localhost:7256/api/GetProfilePicture/' + comment.ownerId">
-                            </div>
-                            <span class="font-medium">{{ comment.owner.firstName }} {{ comment.owner.lastName }}</span>
-                        </router-link>
+                    <div v-show="activeTab === 1" v-for="comment in idea?.comments.filter(c => c.ownerId !== currentUser?.id)" :key="comment.id" class="w-full bg-green-700 p-2 border-2 border-green-800 rounded">
+                        <div class="flex flex-col sm:flex-row gap-2 justify-between">
+                            <router-link :to="'/activites/' + comment.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
+                                <div class="size-6 rounded-full overflow-hidden">
+                                    <img :src="'https://localhost:7256/api/GetProfilePicture/' + comment.ownerId" class="object-fit h-full">
+                                </div>
+                                <span class="font-medium">{{ comment.owner.userName ?? `${comment.owner.firstName} ${comment.owner.lastName}` }}</span>
+                            </router-link>
+                            <button v-if="isModerator" @click="tryDeleteComment(comment)" class="p-1 flex gap-1 justify-center items-center bg-lime-200 rounded-full text-red-600 hover:text-red-700 font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                                    <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
                         <p v-for="line in splitComment(comment)" :key="line">{{ line }}</p>
                     </div>
                 </div>
@@ -197,6 +209,9 @@ import { storeToRefs } from 'pinia';
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import Idea from './Idea.vue';
+import { usePopupStore } from '@/stores/popup';
+import { useToastStore } from '@/stores/toast';
+import { useValidation } from '@/composables/validation';
 
 const isLoading = ref(true)
 const idea = ref<IdeaLLP | undefined>(undefined)
@@ -219,7 +234,7 @@ const pageToastMessages = usePageToastMessages()
 const { showDefaultError, showConnectionError } = pageToastMessages
 
 const auth = useAuthStore()
-const { currentUser } = storeToRefs(auth)
+const { currentUser, isModerator } = storeToRefs(auth)
 
 const hasRating = ref(false)
 const userRating = ref<Rating | undefined>(undefined)
@@ -232,43 +247,49 @@ const { starColor } = converter
 const hasComment = ref(false)
 const userComment = ref<Comment | undefined>(undefined)
 const commentStore = useCommentStore()
-const { submitComment, deleteComment } = commentStore
+const { submitComment, deleteComment, setCommentValidations } = commentStore
 
-function tryDeleteRating() {
-    const rating = userRating.value
-    if (!rating) return
+const popup = usePopupStore()
+const { askConfirmation } = popup
 
-    deleteRating(rating).then(() => {
-        hasRating.value = false
-        rating.id = ''
-        rating.ideaRating = 5
-        rating.priceRating = 5
-    }).catch((err: FetchError) => {
-        if ('status' in err) {
-            showDefaultError()
-        }
-        else {
-            showConnectionError()
-        }
-    })
+const toast = useToastStore()
+const { showSuccess } = toast
+
+async function tryDeleteRating(rating: Rating) {
+    if (await askConfirmation('Delete Rating', 'Are you sure you want to delete this Rating?')) {
+        deleteRating(rating).then(() => {
+            hasRating.value = false
+            rating.id = ''
+            rating.ideaRating = 5
+            rating.priceRating = 5
+            showSuccess('Deleted Rating successfully')
+        }).catch((err: FetchError) => {
+            if ('status' in err) {
+                showDefaultError()
+            }
+            else {
+                showConnectionError()
+            }
+        })
+    }
 }
 
-function tryDeleteComment() {
-    const comment = userComment.value
-    if (!comment) return
-
-    deleteComment(comment).then(() => {
-        hasComment.value = false
-        comment.id = ''
-        comment.message = ''
-    }).catch((err: FetchError) => {
-        if ('status' in err) {
-            showDefaultError()
-        }
-        else {
-            showConnectionError()
-        }
-    })
+async function tryDeleteComment(comment: Comment) {
+    if (await askConfirmation('Delete Comment', 'Are you sure you want to delete this Comment?')) {
+        deleteComment(comment).then(() => {
+            hasComment.value = false
+            comment.id = ''
+            comment.message = ''
+            showSuccess('Deleted Comment successfully')
+        }).catch((err: FetchError) => {
+            if ('status' in err) {
+                showDefaultError()
+            }
+            else {
+                showConnectionError()
+            }
+        })
+    }
 }
 
 function changeIdeaRating(rating: number) {
@@ -382,6 +403,7 @@ onMounted(() => {
         idea.value = res
         displayCharts()
         setDefaultValues()
+        setCommentValidations()
     }).catch(() => {
         showConnectionError()
     })
