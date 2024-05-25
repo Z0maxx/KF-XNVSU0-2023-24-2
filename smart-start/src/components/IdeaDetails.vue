@@ -112,6 +112,10 @@
                         </button>
                     </div>
                     <textarea v-model="userComment.message" rows="4" class="w-full mt-1 p-1 bg-emerald-600 border-2 border-emerald-800 rounded focus:outline-blue-500"></textarea>
+                    <div class="text-cyan-400 text-xl absolute right-4 top-10">*</div>
+                    <div v-for="error in commentErrors" :key="error">
+                        <p class="text-cyan-400">{{ error }}</p>
+                    </div>
                     <button @click="trySubmitComment" class="p-2 mt-1 w-full flex gap-1 justify-center bg-lime-600 hover:bg-lime-700 border-2 border-lime-800 font-medium rounded">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
                             <path fill-rule="evenodd" d="M4.848 2.771A49.144 49.144 0 0 1 12 2.25c2.43 0 4.817.178 7.152.52 1.978.292 3.348 2.024 3.348 3.97v6.02c0 1.946-1.37 3.678-3.348 3.97a48.901 48.901 0 0 1-3.476.383.39.39 0 0 0-.297.17l-2.755 4.133a.75.75 0 0 1-1.248 0l-2.755-4.133a.39.39 0 0 0-.297-.17 48.9 48.9 0 0 1-3.476-.384c-1.978-.29-3.348-2.024-3.348-3.97V6.741c0-1.946 1.37-3.68 3.348-3.97ZM6.75 8.25a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H7.5Z" clip-rule="evenodd" />
@@ -246,8 +250,12 @@ const { starColor } = converter
 
 const hasComment = ref(false)
 const userComment = ref<Comment | undefined>(undefined)
+const commentErrors = ref<Array<string>>([])
 const commentStore = useCommentStore()
 const { submitComment, deleteComment, setCommentValidations } = commentStore
+
+const validation = useValidation()
+const { convertError } = validation
 
 const popup = usePopupStore()
 const { askConfirmation } = popup
@@ -326,7 +334,12 @@ function trySubmitComment() {
         hasComment.value = true
     }).catch((err: FetchError) => {
         if ('status' in err) {
-            showDefaultError()
+            if ('errors' in err && err.status === 400) {
+                commentErrors.value = err.errors['Message'].map(e => convertError(e))
+            }
+            else {
+                showDefaultError()
+            }
         }
         else {
             showConnectionError()

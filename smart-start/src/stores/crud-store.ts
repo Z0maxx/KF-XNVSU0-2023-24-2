@@ -17,7 +17,7 @@ async function convertToJson(res: Response): Promise<object> {
 }
 
 async function checkForError(res: Response): Promise<void> {
-    if (!res.ok) convertToJson(res)
+    if (!res.ok) await convertToJson(res)
 }
 
 export const crudStore = defineStore('Crud', () => {
