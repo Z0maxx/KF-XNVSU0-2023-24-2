@@ -54,7 +54,7 @@ export const useIdeaStore = defineStore(model, () => {
         return await createItem(model, idea)
     }
 
-    async function updateIdea(idea: Idea) {
+    async function updateIdea(idea: FormIdea) {
         return await updateItem(model, idea)
     }
 
