@@ -234,7 +234,7 @@ import { useRatingStore } from '@/stores/rating';
 import { useToastStore } from '@/stores/toast';
 import { ChartData, Comment, CommentLLP, FetchError, IdeaLLP, Rating } from '@/types';
 import { storeToRefs } from 'pinia';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import Idea from './Idea.vue';
 
@@ -244,8 +244,9 @@ const store = useIdeaStore()
 const { getIdea } = store
 
 const route = useRoute()
-const id = route.params.id
-if (typeof id !== 'string') throw new Error('No Id')
+const id = computed(() => {
+    return route.params.id
+})
 
 const activeTab = ref(0)
 
@@ -421,8 +422,10 @@ function setDefaultValues() {
     }
 }
 
-onMounted(() => {
-    getIdea(id).then((res) => {
+function fetchData() {
+    if (typeof id.value !== 'string') return
+
+    getIdea(id.value).then((res) => {
         isLoading.value = false
         idea.value = res
 
@@ -432,5 +435,13 @@ onMounted(() => {
             setCommentValidations()
         }
     }).catch(handleFetchError)
+}
+
+onMounted(() => {
+    fetchData()
+})
+
+watch(id, () => {
+    fetchData()
 })
 </script>
