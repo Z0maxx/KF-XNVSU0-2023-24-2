@@ -175,7 +175,7 @@
                         </div>
                         <div v-show="activeTab === 0" v-for="rating in idea?.ratings.filter(r => r.ownerId !== currentUser?.id)" :key="rating.id" class="bg-green-700 p-2 border-2 border-green-800 rounded size-max">
                             <div class="flex flex-col sm:flex-row gap-2 justify-between">
-                                <router-link :to="'/activites/' + rating.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
+                                <router-link :to="'/activities/' + rating.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
                                     <div class="size-6 rounded-full overflow-hidden">
                                         <img :src="'https://localhost:7256/api/GetProfilePicture/' + rating.ownerId" class="object-fit h-full">
                                     </div>
@@ -203,7 +203,7 @@
                     </div>
                     <div v-show="activeTab === 1" v-for="comment in idea?.comments.filter(c => c.ownerId !== currentUser?.id)" :key="comment.id" class="w-full bg-green-700 p-2 border-2 border-green-800 rounded">
                         <div class="flex flex-col sm:flex-row gap-2 justify-between">
-                            <router-link :to="'/activites/' + comment.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
+                            <router-link :to="'/activities/' + comment.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
                                 <div class="size-6 rounded-full overflow-hidden">
                                     <img :src="'https://localhost:7256/api/GetProfilePicture/' + comment.ownerId" class="object-fit h-full">
                                 </div>

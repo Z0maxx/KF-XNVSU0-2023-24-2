@@ -2,7 +2,7 @@
     <div class="my-4">
         <div class="p-2 bg-emerald-700 border-emerald-800 border-x-4 border-t-4 rounded-t-lg">
             <div class="flex flex-col sm:flex-row gap-2 justify-between">
-                <router-link v-if="displayOwner" :to="'/activites/' + idea.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
+                <router-link v-if="displayOwner" :to="'/activities/' + idea.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
                     <div class="size-6 rounded-full overflow-hidden">
                         <img :src="'https://localhost:7256/api/GetProfilePicture/' + idea.ownerId" class="object-fit h-full">
                     </div>
@@ -142,7 +142,7 @@ function toggleMenu() {
 }
 
 async function tryDelete(idea: Idea) {
-    if (await askConfirmation('Delete Idea', 'Are you sure you want to delete this idea')) {
+    if (await askConfirmation('Delete Idea', 'Are you sure you want to delete this Idea?')) {
         deleteIdea(idea).then(() => {
             showSuccess('Deleted Idea successfully')
         }).catch(handleFetchError)

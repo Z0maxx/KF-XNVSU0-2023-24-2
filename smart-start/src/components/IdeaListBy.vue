@@ -2,7 +2,7 @@
     <div>
         <h1 v-if="user" class="flex gap-2 flex-wrap text-3xl sm:text-5xl font-medium">
             <span>Ideas By</span>
-            <router-link :to="'/activites/' + user.id" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
+            <router-link :to="'/activities/' + user.id" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
                 <div class="size-12 rounded-full overflow-hidden">
                     <img :src="'https://localhost:7256/api/GetProfilePicture/' + user.id" class="object-fit h-full">
                 </div>

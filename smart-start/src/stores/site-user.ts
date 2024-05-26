@@ -1,6 +1,6 @@
 import { defineStore } from "pinia"
 import { crudStore } from "./crud-store"
-import { SiteUserLLP } from "@/types"
+import { SiteUser, SiteUserLLP } from "@/types"
 
 const model = 'SiteUser'
 
@@ -9,8 +9,15 @@ export const useSiteUserStore = defineStore(model, () => {
     const { getItem } = crud
 
     async function getSiteUser(id: string) {
-        return await getItem<SiteUserLLP>(model, id)
+        return await getItem<SiteUser>(model, id)
     }
 
-    return { getSiteUser }
+    async function getSiteUserActivities(id: string) {
+        return await getItem<SiteUserLLP>('SiteUserActivities', id)
+    }
+
+    return {
+        getSiteUser,
+        getSiteUserActivities
+    }
 })
