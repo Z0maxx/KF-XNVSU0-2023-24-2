@@ -55,7 +55,7 @@ import { useFetchErrorHandler } from "@/composables/fetch-error-handler";
 import { useIdeaStore } from "@/stores/idea";
 import { useSiteUserStore } from "@/stores/site-user";
 import { Idea, SiteUser } from "@/types";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { default as IdeaComponent } from "./Idea.vue";
 
@@ -66,8 +66,9 @@ const store = useIdeaStore()
 const { getIdeasBy } = store
 
 const route = useRoute()
-const userId = route.params.userId
-if (typeof userId !== 'string') throw new Error('No User Id')
+const userId = computed(() => {
+    return route.params.userId
+})
 
 const userStore = useSiteUserStore()
 const { getSiteUser } = userStore
@@ -77,14 +78,25 @@ const { handleFetchError } = errorHandler
 
 const isLoading = ref(true)
 
-onMounted(() => {
-    getSiteUser(userId).then((res) => {
+function fetchData() {
+    const id = userId.value
+    if (typeof id !== 'string') return
+
+    getSiteUser(id).then((res) => {
         user.value = res
 
-        getIdeasBy(userId).then((res) => {
+        getIdeasBy(id).then((res) => {
             ideas.value = res
             isLoading.value = false
         }).catch(handleFetchError)
     }).catch(handleFetchError)
+}
+
+onMounted(() => {
+    fetchData()
+})
+
+watch(userId, () => {
+    fetchData()
 })
 </script>
