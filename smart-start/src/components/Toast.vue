@@ -1,5 +1,5 @@
 <template>
-    <div v-show="displayed" class="inset-x-0 mx-auto fixed top-4 flex justify-center text-sm pointer-events-none">
+    <div v-show="displayed" class="inset-x-0 mx-auto fixed bottom-4 z-40 flex justify-center text-sm pointer-events-none">
         <div class="flex items-center w-full max-w-md p-2 rounded-lg shadow mx-2 pointer-events-auto" :class="[background, text]">
             <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg" :class="[highlight]">
                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
