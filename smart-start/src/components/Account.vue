@@ -64,13 +64,13 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { usePageToastMessages } from '@/composables/page-toast-messages';
+import { useFetchErrorHandler } from '@/composables/fetch-error-handler';
 import { useValidation } from '@/composables/validation';
 import { useAuthStore } from '@/stores/auth';
 import { useToastStore } from '@/stores/toast';
-import { FetchError, UpdateProfileModel } from '@/types';
+import { Errors, FetchError, Requireds, UpdateProfileModel } from '@/types';
 import { storeToRefs } from 'pinia';
-import { Ref, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const firstName = ref('')
 const lastName = ref('')
@@ -81,7 +81,7 @@ const firstNameErrors = ref<Array<string>>([])
 const lastNameErrors = ref<Array<string>>([])
 const userNameErrors = ref<Array<string>>([])
 
-const errors: Record<string, Ref<Array<string>>> = {
+const errors: Errors = {
     FirstName: firstNameErrors,
     LastName: lastNameErrors,
     UserName: userNameErrors
@@ -91,7 +91,7 @@ const firstNameRequired = ref(false)
 const lastNameRequired = ref(false)
 const userNameRequired = ref(false)
 const profilePictureRequired = ref(false)
-const requireds: Record<string, Ref<boolean>> = {
+const requireds: Requireds = {
     FirstName: firstNameRequired,
     LastName: lastNameRequired,
     UserName: userNameRequired,
@@ -101,7 +101,7 @@ const requireds: Record<string, Ref<boolean>> = {
 const preview = ref<HTMLImageElement>(document.createElement('img'))
 
 const validation = useValidation()
-const { setRequiredFields, setErrors } = validation
+const { setRequiredFields } = validation
 
 const store = useAuthStore()
 
@@ -109,18 +109,17 @@ const { updateProfile, setUpdateProfileValidations } = store
 const { updateProfileValidations } = storeToRefs(store)
 
 const toast = useToastStore()
-const { showDanger, showSuccess } = toast
-const pageToastMessages = usePageToastMessages()
-const { showDefaultError, showConnectionError } = pageToastMessages
+const { showSuccess } = toast
+
+const errorHandler = useFetchErrorHandler()
+const { handleFetchError, handleFormFetchError } = errorHandler
 
 const auth = useAuthStore()
 const { currentUser } = storeToRefs(auth)
 
-
 function setDefaultValues() {
     const user = currentUser.value
-    if (!user) throw new Error('No Current User')
-    if (!user.firstName || !user.lastName || !user.userName) return
+    if (!user || !user.firstName || !user.lastName || !user.userName) return
 
     userName.value = user.userName
     firstName.value = user.firstName
@@ -130,9 +129,7 @@ function setDefaultValues() {
 onMounted(() => {
     setUpdateProfileValidations().then(() => {
         setRequiredFields(requireds, updateProfileValidations.value)
-    }).catch(() => {
-        showConnectionError()
-    })
+    }).catch(handleFetchError)
 
     setDefaultValues()
 })
@@ -167,22 +164,9 @@ async function tryUpdateProfile() {
     }
 
     updateProfile(model).then(() => {
-        showSuccess('Profile update was successfull')
+        showSuccess('Updated Profile was successfully')
     }).catch((err: FetchError) => {
-        if ('status' in err) {
-            if (err.status === 400 && 'errors' in err) {
-                setErrors(errors, err.errors)
-            }
-            else if (Array.isArray(err)) {
-                showDanger(err[0])
-            }
-            else {
-                showDefaultError()
-            }
-        }
-        else {
-            showConnectionError()
-        }
+        handleFormFetchError(err, errors)
     })
 }
 </script>

@@ -54,7 +54,7 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { usePageToastMessages } from '@/composables/page-toast-messages';
+import { useFetchErrorHandler } from '@/composables/fetch-error-handler';
 import { useRefValueConveter } from '@/composables/ref-value-converter';
 import { useValidation } from '@/composables/validation';
 import { useIdeaStore } from '@/stores/idea';
@@ -101,16 +101,16 @@ const { ideaValidations } = storeToRefs(store)
 const { setIdeaValidations, updateIdea, getIdea } = store
 
 const validation = useValidation()
-const { setRequiredFields, setErrors, resetErrors } = validation
+const { setRequiredFields, resetErrors } = validation
 
 const converter = useRefValueConveter()
 const { convertRefToFloat } = converter
 
 const toast = useToastStore()
-const { showDanger, showSuccess, showAlert } = toast
+const { showSuccess } = toast
 
-const pageToastMessages = usePageToastMessages()
-const { showDefaultError, showConnectionError } = pageToastMessages
+const errorHandler = useFetchErrorHandler()
+const { handleFetchError, handleFormFetchError } = errorHandler
 
 function tryCreateIdea() {
     const instance = idea.value
@@ -128,20 +128,7 @@ function tryCreateIdea() {
         resetErrors(errors)
         showSuccess('Updated Idea successfully')
     }).catch((err: FetchError) => {
-        if ('status' in err) {
-            if (err.status === 400 && 'errors' in err) {
-                setErrors(errors, err.errors)
-            }
-            else if (Array.isArray(err)) {
-                showDanger(err[0])
-            }
-            else {
-                showDefaultError()
-            }
-        }
-        else {
-            showConnectionError()
-        }
+        handleFormFetchError(err, errors)
     })
 }
 
@@ -159,22 +146,10 @@ onMounted(() => {
     getIdea(id).then((res) => {
         idea.value = res
         setDefaultValues()
-    }).catch((err: FetchError) => {
-        if ('status' in err) {
-            showDefaultError()
-        }
-        else if ('message' in err && typeof err.message === 'string') {
-            showAlert(err.message)
-        }
-        else {
-            showConnectionError()
-        }
-    })
+    }).catch(handleFetchError)
 
     setIdeaValidations().then(() => {
         setRequiredFields(requireds, ideaValidations.value)
-    }).catch(() => {
-        showConnectionError()
-    })
+    }).catch(handleFetchError)
 })
 </script>

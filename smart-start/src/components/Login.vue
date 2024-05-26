@@ -46,14 +46,13 @@
     </div>
 </template>
 <script lang="ts" setup>
-import router from '@/router';
+import { useFetchErrorHandler } from '@/composables/fetch-error-handler';
 import { useValidation } from '@/composables/validation';
+import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
-import { useToastStore } from '@/stores/toast';
-import { FbTokenModel, FetchError, LoginModel } from '@/types';
+import { Errors, FbTokenModel, FetchError, LoginModel, Requireds, StatusMessage } from '@/types';
 import { storeToRefs } from 'pinia';
-import { Ref, onMounted, ref } from 'vue';
-import { usePageToastMessages } from '@/composables/page-toast-messages';
+import { onMounted, ref } from 'vue';
 
 const email = ref('')
 const password = ref('')
@@ -61,36 +60,36 @@ const password = ref('')
 const emailErrors = ref<Array<string>>([])
 const passwordErrors = ref<Array<string>>([])
 
-const errors: Record<string, Ref<Array<string>>> = {
+const errors: Errors = {
     Email: emailErrors,
     Password: passwordErrors
 }
 
 const emailRequired = ref(false)
 const passwordRequired = ref(false)
-const requireds: Record<string, Ref<boolean>> = {
+const requireds: Requireds = {
     Email: emailRequired,
     Password: passwordRequired
 }
 
 const validation = useValidation()
-const { setRequiredFields, setErrors, resetErrors } = validation
+const { setRequiredFields } = validation
 
 const store = useAuthStore()
 const { login, loginFacebook, setLoginValidations } = store
 const { loginValidations } = storeToRefs(store)
 
-const toast = useToastStore()
-const { showDanger } = toast
-const pageToastMessages = usePageToastMessages()
-const { showDefaultError, showConnectionError } = pageToastMessages
+const statusMessages: Array<StatusMessage> = [
+    {status: 401, message: 'Incorrect Email or Password'}
+]
+const errorHandler = useFetchErrorHandler()
+const { handleFetchError, handleFetchErrorWithOptions } = errorHandler
+
 
 onMounted(() => {
     setLoginValidations().then(() => {
         setRequiredFields(requireds, loginValidations.value)
-    }).catch(() => {
-        showConnectionError()
-    })
+    }).catch(handleFetchError)
     window.dispatchEvent(new Event('fb-reload'))
 })
 
@@ -99,21 +98,7 @@ async function tryLogin() {
     login(loginModel).then(() => {
         router.push({ path: 'ideas' })
     }).catch((err: FetchError) => {
-        if ('status' in err) {
-            if (err.status === 400 && 'errors' in err) {
-                setErrors(errors, err.errors)
-            }
-            else if (err.status === 401) {
-                resetErrors(errors)
-                showDanger('Incorrect Email or Password')
-            }
-            else  {
-                showDefaultError()
-            }
-        }
-        else {
-            showConnectionError()
-        }
+        handleFetchErrorWithOptions(err, { errors, statusMessages })
     })
 }
 
@@ -124,14 +109,7 @@ window.addEventListener('fb-response', () => {
         expiration.setSeconds(expiration.getSeconds() + res.authResponse.expiresIn)
         loginFacebook({ token: res.authResponse.accessToken, expiration: expiration.toISOString() }).then(() => {
             router.push({ path: 'ideas' })
-        }).catch((err: FetchError) => {
-            if (typeof err === 'string') {
-                showConnectionError()
-            }
-            else {
-                showDefaultError()
-            }
-        })
+        }).catch(handleFetchError)
     }
 })
 </script>

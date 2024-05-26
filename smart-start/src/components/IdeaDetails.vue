@@ -224,20 +224,19 @@
 </template>
 <script lang="ts" setup>
 import { useD3Chart } from '@/composables/d3-chart';
-import { usePageToastMessages } from '@/composables/page-toast-messages';
+import { useFetchErrorHandler } from '@/composables/fetch-error-handler';
 import { useRatingStarConverter } from '@/composables/rating-star-converter';
 import { useAuthStore } from '@/stores/auth';
 import { useCommentStore } from '@/stores/comment';
 import { useIdeaStore } from '@/stores/idea';
+import { usePopupStore } from '@/stores/popup';
 import { useRatingStore } from '@/stores/rating';
+import { useToastStore } from '@/stores/toast';
 import { ChartData, Comment, CommentLLP, FetchError, IdeaLLP, Rating } from '@/types';
 import { storeToRefs } from 'pinia';
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import Idea from './Idea.vue';
-import { usePopupStore } from '@/stores/popup';
-import { useToastStore } from '@/stores/toast';
-import { useValidation } from '@/composables/validation';
 
 const isLoading = ref(true)
 const idea = ref<IdeaLLP | undefined>(undefined)
@@ -256,9 +255,6 @@ const ratingsChart = ref<HTMLElement | null>(null)
 const ideaRatingsChart = ref<HTMLElement | null>(null)
 const priceRatingsChart = ref<HTMLElement | null>(null)
 
-const pageToastMessages = usePageToastMessages()
-const { showDefaultError, showConnectionError } = pageToastMessages
-
 const auth = useAuthStore()
 const { currentUser, isModerator } = storeToRefs(auth)
 
@@ -276,14 +272,14 @@ const commentErrors = ref<Array<string>>([])
 const commentStore = useCommentStore()
 const { submitComment, deleteComment, setCommentValidations } = commentStore
 
-const validation = useValidation()
-const { convertError } = validation
-
 const popup = usePopupStore()
 const { askConfirmation } = popup
 
 const toast = useToastStore()
-const { showSuccess, showAlert } = toast
+const { showSuccess } = toast
+
+const errorHandler = useFetchErrorHandler()
+const { handleFetchError, handleFormFetchError } = errorHandler
 
 async function tryDeleteRating(rating: Rating) {
     if (await askConfirmation('Delete Rating', 'Are you sure you want to delete this Rating?')) {
@@ -293,14 +289,7 @@ async function tryDeleteRating(rating: Rating) {
             rating.ideaRating = 5
             rating.priceRating = 5
             showSuccess('Deleted Rating successfully')
-        }).catch((err: FetchError) => {
-            if ('status' in err) {
-                showDefaultError()
-            }
-            else {
-                showConnectionError()
-            }
-        })
+        }).catch(handleFetchError)
     }
 }
 
@@ -311,14 +300,7 @@ async function tryDeleteComment(comment: Comment) {
             comment.id = ''
             comment.message = ''
             showSuccess('Deleted Comment successfully')
-        }).catch((err: FetchError) => {
-            if ('status' in err) {
-                showDefaultError()
-            }
-            else {
-                showConnectionError()
-            }
-        })
+        }).catch(handleFetchError)
     }
 }
 
@@ -339,14 +321,7 @@ function trySubmitRating() {
 
     submitRating(userRating.value).then(() => {
         hasRating.value = true
-    }).catch((err: FetchError) => {
-        if ('status' in err) {
-            showDefaultError()
-        }
-        else {
-            showConnectionError()
-        }
-    })
+    }).catch(handleFetchError)
 }
 
 function trySubmitComment() {
@@ -355,17 +330,7 @@ function trySubmitComment() {
     submitComment(userComment.value).then(() => {
         hasComment.value = true
     }).catch((err: FetchError) => {
-        if ('status' in err) {
-            if ('errors' in err && err.status === 400) {
-                commentErrors.value = err.errors['Message'].map(e => convertError(e))
-            }
-            else {
-                showDefaultError()
-            }
-        }
-        else {
-            showConnectionError()
-        }
+        handleFormFetchError(err, { Message: commentErrors })
     })
 }
 
@@ -444,16 +409,6 @@ onMounted(() => {
             setDefaultValues()
             setCommentValidations()
         }
-    }).catch((err: FetchError) => {
-        if ('status' in err) {
-            showDefaultError()
-        }
-        else if ('message' in err && typeof err.message === 'string') {
-            showAlert(err.message)
-        }
-        else {
-            showConnectionError()
-        }
-    })
+    }).catch(handleFetchError)
 })
 </script>
