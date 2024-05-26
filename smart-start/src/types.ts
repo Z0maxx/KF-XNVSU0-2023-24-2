@@ -80,9 +80,11 @@ export type Idea = {
     title: string
     description: string
     price: number
-    priceUnit: string,
-    ideaRating: number,
+    priceUnit: string
+    ideaRating: number
     priceRating: number
+    ratingCount: number
+    commentCount: number
     owner: SiteUser
 }
 
@@ -102,6 +104,7 @@ export type Comment = TableModel & {
     ownerId: string
     ideaId: string
     message: string
+    ideaTitle?: string
 }
 
 export type CommentLLP = Comment & {
@@ -113,6 +116,7 @@ export type Rating = TableModel & {
     ownerId: string
     priceRating: number
     ideaRating: number
+    ideaTitle?: string
 }
 
 export type RatingLLP = Rating & {
