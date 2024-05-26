@@ -80,14 +80,14 @@
     </div>
 </template>
 <script lang="ts" setup>
-import router from '@/router';
+import { useFetchErrorHandler } from '@/composables/fetch-error-handler';
 import { useValidation } from '@/composables/validation';
+import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
 import { useToastStore } from '@/stores/toast';
-import { FbTokenModel, FetchError, RegisterModel } from '@/types';
+import { Errors, FbTokenModel, FetchError, RegisterModel, Requireds } from '@/types';
 import { storeToRefs } from 'pinia';
-import { Ref, onMounted, ref } from 'vue';
-import { usePageToastMessages } from '@/composables/page-toast-messages';
+import { onMounted, ref } from 'vue';
 
 const email = ref('')
 const password = ref('')
@@ -102,7 +102,7 @@ const confirmPasswordErrors = ref<Array<string>>([])
 const firstNameErrors = ref<Array<string>>([])
 const lastNameErrors = ref<Array<string>>([])
 
-const errors: Record<string, Ref<Array<string>>> = {
+const errors: Errors = {
     Email: emailErrors,
     Password: passwordErrors,
     FirstName: firstNameErrors,
@@ -114,7 +114,7 @@ const passwordRequired = ref(false)
 const firstNameRequired = ref(false)
 const lastNameRequired = ref(false)
 const profilePictureRequired = ref(false)
-const requireds: Record<string, Ref<boolean>> = {
+const requireds: Requireds = {
     Email: emailRequired,
     Password: passwordRequired,
     FirstName: firstNameRequired,
@@ -125,7 +125,7 @@ const requireds: Record<string, Ref<boolean>> = {
 const preview = ref<HTMLImageElement>(document.createElement('img'))
 
 const validation = useValidation()
-const { setRequiredFields, setErrors } = validation
+const { setRequiredFields } = validation
 
 const store = useAuthStore()
 
@@ -133,16 +133,16 @@ const { register, loginFacebook, setRegisterValidations } = store
 const { registerValidations } = storeToRefs(store)
 
 const toast = useToastStore()
-const { showDanger, showSuccess } = toast
-const pageToastMessages = usePageToastMessages()
-const { showDefaultError, showConnectionError } = pageToastMessages
+const { showSuccess } = toast
+
+const errorHandler = useFetchErrorHandler()
+const { handleFetchError, handleFormFetchError } = errorHandler
 
 onMounted(() => {
     setRegisterValidations().then(() => {
         setRequiredFields(requireds, registerValidations.value)
-    }).catch(() => {
-        showConnectionError()
-    })
+    }).catch(handleFetchError)
+
     window.dispatchEvent(new Event('fb-reload'))
 })
 
@@ -154,7 +154,6 @@ function handleProfilePictureChange(e: Event) {
     const image = preview.value
     const reader = new FileReader()
     const picture = profilePicture.value[0]
-    console.log(picture)
     reader.readAsDataURL(picture)
     reader.addEventListener('load', () => {
         image.src = reader.result as string
@@ -175,7 +174,7 @@ async function tryRegister() {
         userName: email.value,
         password: password.value,
         firstName: firstName.value,
-        lastName: lastName.value,
+        lastName: lastName.value
     }
 
     if (profilePicture.value && profilePicture.value[0]) {
@@ -188,23 +187,10 @@ async function tryRegister() {
     }
 
     register(registerModel).then(() => {
-        showSuccess('Registration successful, welcome')
+        showSuccess('Registration was successful, welcome!')
         router.push({ path: 'ideas' })
     }).catch((err: FetchError) => {
-        if ('status' in err) {
-            if (err.status === 400 && 'errors' in err) {
-                setErrors(errors, err.errors)
-            }
-            else if (Array.isArray(err)) {
-                showDanger(err[0])
-            }
-            else {
-                showDefaultError()
-            }
-        }
-        else {
-            showConnectionError()
-        }
+        handleFormFetchError(err, errors)
     })
 }
 
@@ -215,19 +201,7 @@ window.addEventListener('fb-response', () => {
         expiration.setSeconds(expiration.getSeconds() + res.authResponse.expiresIn)
         loginFacebook({ token: res.authResponse.accessToken, expiration: expiration.toISOString() }).then(() => {
             router.push({ path: 'ideas' })
-        }).catch((err: FetchError) => {
-            if ('status' in err) {
-                if (err.status === 400 && 'errors' in err) {
-                    setErrors(errors, err.errors)
-                }
-                else {
-                    showDefaultError()
-                }
-            }
-            else {
-                showConnectionError()
-            }
-        })
+        }).catch(handleFetchError)
     }
 })
 </script>

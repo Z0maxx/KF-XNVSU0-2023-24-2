@@ -50,7 +50,7 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { usePageToastMessages } from '@/composables/page-toast-messages';
+import { useFetchErrorHandler } from '@/composables/fetch-error-handler';
 import { useRefValueConveter } from '@/composables/ref-value-converter';
 import { useValidation } from '@/composables/validation';
 import { useIdeaStore } from '@/stores/idea';
@@ -91,16 +91,16 @@ const { ideaValidations } = storeToRefs(store)
 const { setIdeaValidations, createIdea } = store
 
 const validation = useValidation()
-const { setRequiredFields, setErrors, resetErrors } = validation
+const { setRequiredFields, resetErrors } = validation
 
 const converter = useRefValueConveter()
 const { convertRefToFloat } = converter
 
 const toast = useToastStore()
-const { showDanger, showSuccess } = toast
+const { showSuccess } = toast
 
-const pageToastMessages = usePageToastMessages()
-const { showDefaultError, showConnectionError } = pageToastMessages
+const errorHandler = useFetchErrorHandler()
+const { handleFetchError, handleFormFetchError } = errorHandler
 
 function tryCreateIdea() {
     const model: FormIdea = {
@@ -119,28 +119,13 @@ function tryCreateIdea() {
         resetErrors(errors)
         showSuccess('Created Idea successfully')
     }).catch((err: FetchError) => {
-        if ('status' in err) {
-            if (err.status === 400 && 'errors' in err) {
-                setErrors(errors, err.errors)
-            }
-            else if (Array.isArray(err)) {
-                showDanger(err[0])
-            }
-            else {
-                showDefaultError()
-            }
-        }
-        else {
-            showConnectionError()
-        }
+        handleFormFetchError(err, errors)
     })
 }
 
 onMounted(() => {
     setIdeaValidations().then(() => {
         setRequiredFields(requireds, ideaValidations.value)
-    }).catch(() => {
-        showConnectionError()
-    })
+    }).catch(handleFetchError)
 })
 </script>

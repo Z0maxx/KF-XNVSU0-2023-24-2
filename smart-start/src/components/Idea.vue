@@ -96,14 +96,14 @@
 </template>
 <script lang="ts" setup>
 import { defineProps, ref, toRefs } from 'vue';
-import { usePageToastMessages } from '@/composables/page-toast-messages';
 import { useRatingStarConverter } from '@/composables/rating-star-converter';
 import { useAuthStore } from '@/stores/auth';
 import { useIdeaStore } from '@/stores/idea';
 import { usePopupStore } from '@/stores/popup';
 import { useToastStore } from '@/stores/toast';
-import { FetchError, Idea } from '@/types';
+import { Idea } from '@/types';
 import { storeToRefs } from 'pinia';
+import { useFetchErrorHandler } from '@/composables/fetch-error-handler';
 
 const showMenu = ref(false)
 const props = defineProps<{
@@ -127,8 +127,8 @@ const { askConfirmation } = popup
 const toast = useToastStore()
 const { showSuccess } = toast
 
-const pageToastMessages = usePageToastMessages()
-const { showDefaultError, showConnectionError } = pageToastMessages
+const errorHandler = useFetchErrorHandler()
+const { handleFetchError } = errorHandler
 
 const converter = useRatingStarConverter()
 const { starColor, wholeStars, emptyStars, percentageStarFill } = converter
@@ -145,14 +145,7 @@ async function tryDelete(idea: Idea) {
     if (await askConfirmation('Delete Idea', 'Are you sure you want to delete this idea')) {
         deleteIdea(idea).then(() => {
             showSuccess('Deleted Idea successfully')
-        }).catch((err: FetchError) => {
-            if ('status' in err) {
-                showDefaultError()
-            }
-            else {
-                showConnectionError()
-            }
-        })
+        }).catch(handleFetchError)
     }
 }
 </script>

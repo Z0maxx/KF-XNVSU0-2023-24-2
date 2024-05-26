@@ -56,11 +56,13 @@ export type Errors = Record<string, Ref<Array<string>>>
 
 export type Requireds = Record<string, Ref<boolean>>
 
-export type BadRequest = { status: 400, errors: Validations }
+export type ValidationErrors = { status: 400, errors: Validations }
 
-export type NetworkError = BadRequest | { status: number }
+export type NetworkError = ValidationErrors | { status: number }
 
-export type FetchError = NetworkError | object
+export type MessageError = { message: string }
+
+export type FetchError = NetworkError | MessageError | object
 
 export type ToastType = 'success' | 'alert' | 'danger'
 
@@ -120,4 +122,14 @@ export type RatingLLP = Rating & {
 export type ChartData = {
     name: string | number
     value: string | number
+}
+
+export type StatusMessage = {
+    status: number
+    message: string
+}
+
+export type FetchErrorHandlerOptions = {
+    errors?: Errors
+    statusMessages?: Array<StatusMessage>
 }

@@ -1,7 +1,7 @@
-import { Comment, FetchError, NetworkError, Validations } from '@/types'
+import { Comment, FetchError, Validations } from '@/types'
 import { defineStore } from 'pinia'
-import { crudStore } from './crud-store'
 import { ref } from 'vue'
+import { crudStore } from './crud-store'
 
 const model = 'Comment'
 

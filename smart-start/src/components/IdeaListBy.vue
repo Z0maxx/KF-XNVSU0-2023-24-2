@@ -51,14 +51,13 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { default as IdeaComponent } from "./Idea.vue";
-import { usePageToastMessages } from "@/composables/page-toast-messages";
+import { useFetchErrorHandler } from "@/composables/fetch-error-handler";
 import { useIdeaStore } from "@/stores/idea";
 import { useSiteUserStore } from "@/stores/site-user";
-import { useToastStore } from "@/stores/toast";
-import { FetchError, Idea, SiteUser } from "@/types";
+import { Idea, SiteUser } from "@/types";
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
+import { default as IdeaComponent } from "./Idea.vue";
 
 const user = ref<SiteUser | undefined>(undefined)
 const ideas = ref<Array<Idea>>([])
@@ -73,11 +72,8 @@ if (typeof userId !== 'string') throw new Error('No User Id')
 const userStore = useSiteUserStore()
 const { getSiteUser } = userStore
 
-const toast = useToastStore()
-const { showAlert } = toast
-
-const pageToastMessages = usePageToastMessages()
-const { showDefaultError, showConnectionError } = pageToastMessages
+const errorHandler = useFetchErrorHandler()
+const { handleFetchError } = errorHandler
 
 const isLoading = ref(true)
 
@@ -88,24 +84,7 @@ onMounted(() => {
         getIdeasBy(userId).then((res) => {
             ideas.value = res
             isLoading.value = false
-        }).catch((err: FetchError) => {
-            if ('status' in err) {
-                showDefaultError()
-            }
-            else {
-                showConnectionError()
-            }
-        })
-    }).catch((err: FetchError) => {
-        if ('status' in err) {
-            showDefaultError()
-        }
-        else if ('message' in err && typeof err.message === 'string') {
-            showAlert(err.message)
-        }
-        else {
-            showConnectionError()
-        }
-    })
+        }).catch(handleFetchError)
+    }).catch(handleFetchError)
 })
 </script>
