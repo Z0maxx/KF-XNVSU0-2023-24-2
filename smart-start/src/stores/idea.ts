@@ -8,12 +8,20 @@ const model = 'Idea'
 export const useIdeaStore = defineStore(model, () => {
     const ideaValidations = ref<Validations | undefined>(undefined)
     const crud = crudStore()
-    const { getItem, getItems, createItem, updateItem, deleteItem } = crud
+    const {
+        api,
+        convertToJson,
+        getItem,
+        getItems,
+        createItem,
+        updateItem,
+        deleteItem
+    } = crud
    
     async function setIdeaValidations() {
         if (ideaValidations.value !== undefined) return
 
-        createIdea({
+        await createIdea({
             id: '',
             title: '',
             description: '',
@@ -34,14 +42,19 @@ export const useIdeaStore = defineStore(model, () => {
     }
 
     async function getIdeas() {
-        return await getItems<Idea>(model)
+        return await getItems<IdeaLLP>(model)
+    }
+
+    async function getIdeasBy(userId: string) {
+        const res = await fetch(`${api}/GetIdeasBy/${userId}`)
+        return await convertToJson(res) as Array<IdeaLLP>
     }
 
     async function createIdea(idea: FormIdea) {
         return await createItem(model, idea)
     }
 
-    async function updateIdea(idea: Idea) {
+    async function updateIdea(idea: FormIdea) {
         return await updateItem(model, idea)
     }
 
@@ -54,6 +67,7 @@ export const useIdeaStore = defineStore(model, () => {
         setIdeaValidations,
         getIdea,
         getIdeas,
+        getIdeasBy,
         createIdea,
         updateIdea,
         deleteIdea

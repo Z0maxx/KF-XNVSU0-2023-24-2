@@ -13,44 +13,38 @@
                             </div>
                         </label>
                         <input v-on:change="handleProfilePictureChange" id="profile-picture" type="file" accept="image/jpeg,image/gif,image/png" class="file:bg-lime-600 file:border-solid file:text-white file:rounded file:border-lime-800 file:cursor-pointer cursor-pointer relative w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="profilePictureRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="first-name" class="block">First Name</label>
+                        <label for="first-name" class="block">First Name<span v-if="firstNameRequired" class="text-cyan-400 text-xl">*</span></label>
                         <input v-model="firstName" id="first-name" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="firstNameRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in firstNameErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="last-name" class="block">Last Name</label>
+                        <label for="last-name" class="block">Last Name<span v-if="lastNameRequired" class="text-cyan-400 text-xl">*</span></label>
                         <input v-model="lastName" id="last-name" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="lastNameRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in lastNameErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="email" class="block">Email</label>
+                        <label for="email" class="block">Email<span v-if="emailRequired" class="text-cyan-400 text-xl">*</span></label>
                         <input type="email" v-model="email" autocomplete="username" id="email" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded invalid:border-orange-500 invalid:outline-orange-500 valid:focus:outline-blue-500">
-                        <div v-if="emailRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in emailErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="password" class="block">Password</label>
+                        <label for="password" class="block">Password<span v-if="passwordRequired" class="text-cyan-400 text-xl">*</span></label>
                         <input type="password" v-model="password" autocomplete="new-password" id="password" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="passwordRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in passwordErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="confirm-password" class="block">Confirm Password</label>
+                        <label for="confirm-password" class="block">Confirm Password<span v-if="passwordRequired" class="text-cyan-400 text-xl">*</span></label>
                         <input type="password" v-model="confirmPassword" autocomplete="new-password" id="confirm-password" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="passwordRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in confirmPasswordErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
@@ -80,14 +74,14 @@
     </div>
 </template>
 <script lang="ts" setup>
-import router from '@/router';
+import { useFetchErrorHandler } from '@/composables/fetch-error-handler';
 import { useValidation } from '@/composables/validation';
+import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
 import { useToastStore } from '@/stores/toast';
-import { FbTokenModel, FetchError, RegisterModel } from '@/types';
+import { Errors, FbTokenModel, FetchError, RegisterModel, Requireds } from '@/types';
 import { storeToRefs } from 'pinia';
-import { Ref, onMounted, ref } from 'vue';
-import { usePageToastMessages } from '@/composables/page-toast-messages';
+import { onMounted, ref } from 'vue';
 
 const email = ref('')
 const password = ref('')
@@ -97,35 +91,41 @@ const lastName = ref('')
 const profilePicture = ref<FileList | null>(null)
 
 const emailErrors = ref<Array<string>>([])
+const userNameErrors = ref<Array<string>>([])
 const passwordErrors = ref<Array<string>>([])
 const confirmPasswordErrors = ref<Array<string>>([])
 const firstNameErrors = ref<Array<string>>([])
 const lastNameErrors = ref<Array<string>>([])
 
-const errors: Record<string, Ref<Array<string>>> = {
-    Email: emailErrors,
-    Password: passwordErrors,
-    FirstName: firstNameErrors,
-    LastName: lastNameErrors
+const errors: Errors = {
+    email: emailErrors,
+    userName: userNameErrors,
+    password: passwordErrors,
+    firstName: firstNameErrors,
+    lastName: lastNameErrors
 }
 
 const emailRequired = ref(false)
+const userNameRequired = ref(false)
 const passwordRequired = ref(false)
 const firstNameRequired = ref(false)
 const lastNameRequired = ref(false)
-const profilePictureRequired = ref(false)
-const requireds: Record<string, Ref<boolean>> = {
-    Email: emailRequired,
-    Password: passwordRequired,
-    FirstName: firstNameRequired,
-    LastName: lastNameRequired,
-    ProfilePictureContentType: profilePictureRequired
+const requireds: Requireds = {
+    email: emailRequired,
+    userName: userNameRequired,
+    password: passwordRequired,
+    firstName: firstNameRequired,
+    lastName: lastNameRequired
 }
 
 const preview = ref<HTMLImageElement>(document.createElement('img'))
 
 const validation = useValidation()
-const { setRequiredFields, setErrors } = validation
+const {
+    setRequireds,
+    setValidationAttributes,
+    isModelValid
+} = validation
 
 const store = useAuthStore()
 
@@ -133,16 +133,17 @@ const { register, loginFacebook, setRegisterValidations } = store
 const { registerValidations } = storeToRefs(store)
 
 const toast = useToastStore()
-const { showDanger, showSuccess } = toast
-const pageToastMessages = usePageToastMessages()
-const { showDefaultError, showConnectionError } = pageToastMessages
+const { showSuccess } = toast
+
+const errorHandler = useFetchErrorHandler()
+const { handleFetchError, handleFormFetchError } = errorHandler
 
 onMounted(() => {
     setRegisterValidations().then(() => {
-        setRequiredFields(requireds, registerValidations.value)
-    }).catch(() => {
-        showConnectionError()
-    })
+        setValidationAttributes(registerValidations.value)
+        setRequireds(requireds)
+    }).catch(handleFetchError)
+
     window.dispatchEvent(new Event('fb-reload'))
 })
 
@@ -154,7 +155,6 @@ function handleProfilePictureChange(e: Event) {
     const image = preview.value
     const reader = new FileReader()
     const picture = profilePicture.value[0]
-    console.log(picture)
     reader.readAsDataURL(picture)
     reader.addEventListener('load', () => {
         image.src = reader.result as string
@@ -170,12 +170,12 @@ async function tryRegister() {
         confirmPasswordErrors.value.pop()
     }
 
-    const registerModel: RegisterModel = {
+    const model: RegisterModel = {
         email: email.value,
         userName: email.value,
         password: password.value,
         firstName: firstName.value,
-        lastName: lastName.value,
+        lastName: lastName.value
     }
 
     if (profilePicture.value && profilePicture.value[0]) {
@@ -183,29 +183,18 @@ async function tryRegister() {
         const image = preview.value
         const split = image.src.split(',')
 
-        registerModel.profilePictureContentType = picture.type
-        registerModel.profilePictureData = split[1]
+        model.profilePictureContentType = picture.type
+        model.profilePictureData = split[1]
     }
 
-    register(registerModel).then(() => {
-        showSuccess('Registration successful, welcome')
-        router.push({ path: 'ideas' })
-    }).catch((err: FetchError) => {
-        if ('status' in err) {
-            if (err.status === 400 && 'errors' in err) {
-                setErrors(errors, err.errors)
-            }
-            else if (Array.isArray(err)) {
-                showDanger(err[0])
-            }
-            else {
-                showDefaultError()
-            }
-        }
-        else {
-            showConnectionError()
-        }
-    })
+    if (isModelValid(errors, model)) {
+        register(model).then(() => {
+            showSuccess('Registration was successful, welcome!')
+            router.push({ path: 'ideas' })
+        }).catch((err: FetchError) => {
+            handleFormFetchError(err, errors)
+        })
+    }
 }
 
 window.addEventListener('fb-response', () => {
@@ -215,19 +204,7 @@ window.addEventListener('fb-response', () => {
         expiration.setSeconds(expiration.getSeconds() + res.authResponse.expiresIn)
         loginFacebook({ token: res.authResponse.accessToken, expiration: expiration.toISOString() }).then(() => {
             router.push({ path: 'ideas' })
-        }).catch((err: FetchError) => {
-            if ('status' in err) {
-                if (err.status === 400 && 'errors' in err) {
-                    setErrors(errors, err.errors)
-                }
-                else {
-                    showDefaultError()
-                }
-            }
-            else {
-                showConnectionError()
-            }
-        })
+        }).catch(handleFetchError)
     }
 })
 </script>

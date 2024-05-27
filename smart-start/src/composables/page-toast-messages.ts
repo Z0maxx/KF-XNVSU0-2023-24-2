@@ -4,8 +4,8 @@ export function usePageToastMessages() {
     const toast = useToastStore()
     const { showAlert, showDanger } = toast
 
-    function showDefaultError() {
-        showAlert('Something went wrong')
+    function showDefaultError(statusCode: number) {
+        showAlert('Something went wrong: status ' + statusCode)
     }
     
     function showConnectionError() {

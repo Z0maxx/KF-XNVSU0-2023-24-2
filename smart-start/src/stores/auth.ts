@@ -1,5 +1,6 @@
+import router from "@/router";
 import { removeItem, setItem, setRef } from "@/services/ref-local-storage-service";
-import { FetchError, LoginModel, RegisterModel, SiteUser, TokenModel, Validations } from "@/types";
+import { FetchError, LoginModel, RegisterModel, SiteUser, TokenModel, UpdateProfileModel, Validations } from "@/types";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
@@ -37,19 +38,46 @@ function fetchAuth(endpoint: string, payload: unknown): Promise<Response> {
     })
 }
 
-
-
 export const useAuthStore = defineStore('Auth', () => {
     const loginValidations = ref<Validations | undefined>(undefined)
     const registerValidations = ref<Validations | undefined>(undefined)
-    const tokenModel = ref<TokenModel | undefined>(undefined)
-    const currentUser = ref<SiteUser | undefined>(undefined)
-    setRef(tokenModelKey, tokenModel)
-    setRef(currentUserKey, currentUser)
+    const updateProfileValidations = ref<Validations | undefined>(undefined)
+    const tokenModelRef = ref<TokenModel | undefined>(undefined)
+    const currentUserRef = ref<SiteUser | undefined>(undefined)
+    setRef(tokenModelKey, tokenModelRef)
+    setRef(currentUserKey, currentUserRef)
+
+    function checkExpiration(): boolean {
+        const value = tokenModelRef.value
+        if (!value) return false
+        const now = new Date()
+        const expiration = new Date(value.expiration)
+        if (now >= expiration) {
+            logout()
+            router.push({ path: '/login' })
+            return true
+        }
+        return false
+    }
+
+    const tokenModel = computed<TokenModel | undefined>(() => {
+        if (checkExpiration()) return undefined
+        return tokenModelRef.value
+    })
+
+    const currentUser = computed<SiteUser | undefined>(() => {
+        if (checkExpiration()) return undefined
+        return currentUserRef.value
+    })
 
     const isLoggedIn = computed(() => {
         return tokenModel.value !== undefined
     })
+
+    const isModerator = computed(() => {
+        return currentUser.value?.roles?.includes('Moderator')
+    })
+
     const headersWithBearer = computed(() => {
         const token = tokenModel.value?.token
         if (!token) throw new Error('No token')
@@ -64,12 +92,12 @@ export const useAuthStore = defineStore('Auth', () => {
             headers: getHeadersWithBearer(json.token)
         })
 
-        setItem(tokenModelKey, json, tokenModel)
-        setItem(currentUserKey, await convertToJson(res), currentUser)
+        setItem(tokenModelKey, json, tokenModelRef)
+        setItem(currentUserKey, await convertToJson(res), currentUserRef)
     }
 
-    async function login(loginModel: LoginModel): Promise<void> {
-        const res = await fetchAuth('Login', loginModel)
+    async function login(model: LoginModel): Promise<void> {
+        const res = await fetchAuth('Login', model)
         await setup(res)
     }
 
@@ -79,17 +107,32 @@ export const useAuthStore = defineStore('Auth', () => {
     }
 
     function logout() {
-        removeItem(tokenModelKey, tokenModel)
-        removeItem(currentUserKey, currentUser)
+        removeItem(tokenModelKey, tokenModelRef)
+        removeItem(currentUserKey, currentUserRef)
         if (localStorage.getItem(fbResponse)) {
             localStorage.removeItem(fbResponse)
             window.dispatchEvent(new Event('fb-logout'))
         }
     }
 
-    async function register(registerModel: RegisterModel): Promise<void> {
-        const res = await fetchAuth('Register', registerModel)
+    async function register(model: RegisterModel): Promise<void> {
+        const res = await fetchAuth('Register', model)
         await setup(res)
+    }
+
+    async function updateProfile(model: UpdateProfileModel): Promise<void> {
+        let res = await fetch(api + 'UpdateProfile', {
+            method: 'put',
+            headers: headersWithBearer.value,
+            body: JSON.stringify(model)
+        })
+
+        if (!res.ok) await convertToJson(res)
+
+        res = await fetch(api + 'GetUserInfos', {
+            headers: headersWithBearer.value
+        })
+        setItem(currentUserKey, await convertToJson(res), currentUserRef)
     }
 
     async function setLoginValidations(): Promise<void> {
@@ -124,18 +167,57 @@ export const useAuthStore = defineStore('Auth', () => {
         })
     }
 
+    async function setUpdateProfileValidations(): Promise<void> {
+        if (updateProfileValidations.value !== undefined) return
+
+        await updateProfile({
+            userName: '',
+            firstName: '',
+            lastName: ''
+        }).catch((err: FetchError) => {
+            if ('errors' in err && err.status === 400) {
+                updateProfileValidations.value = err.errors
+            }
+            else {
+                throw err
+            }
+        })
+    }
+
+    async function deleteAccount(): Promise<void> {
+        const res = await fetch(api + 'DeleteMyself', {
+            method: 'delete',
+            headers: headersWithBearer.value
+        })
+
+        if (!res.ok) {
+            let json
+            try {
+                json = await res.json()
+            }
+            catch {
+                throw res
+            }
+            throw json
+        }
+    }
+
     return {
         isLoggedIn,
-        tokenModel,
         currentUser,
+        isModerator,
         loginValidations,
         registerValidations,
+        updateProfileValidations,
         headersWithBearer,
         login,
         loginFacebook,
         logout,
         register,
+        updateProfile,
+        deleteAccount,
         setLoginValidations,
-        setRegisterValidations
+        setRegisterValidations,
+        setUpdateProfileValidations
     }
 })
