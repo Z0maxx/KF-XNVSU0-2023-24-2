@@ -4,37 +4,34 @@
             <h1 class="text-3xl sm:text-5xl font-medium">Create Idea</h1>
             <div class="p-2 bg-green-700 border-green-800 border-2 rounded mt-4">
                 <div class="relative">
-                    <label for="title" class="block">Title</label>
+                    <label for="title" class="block">Title<span v-if="titleRequired" class="text-cyan-400 text-xl">*</span></label>
                     <input v-model="title" id="title" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                    <div v-if="titleRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                     <div v-for="error in titleErrors" :key="error">
                         <p class="text-cyan-400">{{ error }}</p>
                     </div>
                 </div>
                 <div class="mt-4 relative">
-                    <label for="description" class="block">Description</label>
-                    <textarea v-model="description" id="description" rows="3" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500"></textarea>
-                    <div v-if="descriptionRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
+                    <label for="description" class="block">Description<span v-if="descriptionRequired" class="text-cyan-400 text-xl">*</span></label>
+                    <textarea v-model="description" id="description" rows="3" class="w-full px-1 pb-1 pt-3 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500"></textarea>
+                    <span class="absolute left-1 top-7 text-xs">{{ descriptionLength }}</span>
                     <div v-for="error in descriptionErrors" :key="error">
                         <p class="text-cyan-400">{{ error }}</p>
                     </div>
                 </div>
                 <div class="mt-4 relative">
-                    <label for="price" class="block">Price</label>
-                    <input v-model="price" id="price" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                    <div v-if="priceRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
+                    <label for="price" class="block">Price<span v-if="priceRequired" class="text-cyan-400 text-xl">*</span></label>
+                    <input type="number" v-model="price" id="price" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
                     <div v-for="error in priceErrors" :key="error">
                         <p class="text-cyan-400">{{ error }}</p>
                     </div>
                 </div>
                 <div class="mt-4 relative">
-                    <label for="price-unit" class="block">Price Unit</label>
+                    <label for="price-unit" class="block">Price Unit<span v-if="priceUnitRequired" class="text-cyan-400 text-xl">*</span></label>
                     <select v-model="priceUnit" id="price-unit" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
                         <option value="" disabled class="font-medium text-cyan-400">Select an option</option>
                         <option>Piece</option>
                         <option>Day</option>
                     </select>
-                    <div v-if="priceUnitRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                     <div v-for="error in priceUnitErrors" :key="error">
                         <p class="text-cyan-400">{{ error }}</p>
                     </div>
@@ -51,17 +48,16 @@
 </template>
 <script lang="ts" setup>
 import { useFetchErrorHandler } from '@/composables/fetch-error-handler';
-import { useRefValueConveter } from '@/composables/ref-value-converter';
 import { useValidation } from '@/composables/validation';
 import { useIdeaStore } from '@/stores/idea';
 import { useToastStore } from '@/stores/toast';
 import { Errors, FetchError, FormIdea, Requireds } from '@/types';
 import { storeToRefs } from 'pinia';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
 const title = ref('')
 const description = ref('')
-const price = ref('')
+const price = ref<number | undefined>(undefined)
 const priceUnit = ref('')
 
 const titleErrors = ref<Array<string>>([])
@@ -69,10 +65,10 @@ const descriptionErrors = ref<Array<string>>([])
 const priceErrors = ref<Array<string>>([])
 const priceUnitErrors = ref<Array<string>>([])
 const errors: Errors = {
-    Title: titleErrors,
-    Description: descriptionErrors,
-    Price: priceErrors,
-    PriceUnit: priceUnitErrors
+    title: titleErrors,
+    description: descriptionErrors,
+    price: priceErrors,
+    priceUnit: priceUnitErrors
 }
 
 const titleRequired = ref(false)
@@ -80,21 +76,26 @@ const descriptionRequired = ref(false)
 const priceRequired = ref(false)
 const priceUnitRequired = ref(false)
 const requireds: Requireds = {
-    Title: titleRequired,
-    Description: descriptionRequired,
-    Price: priceRequired,
-    PriceUnit: priceUnitRequired
+    title: titleRequired,
+    description: descriptionRequired,
+    price: priceRequired,
+    priceUnit: priceUnitRequired
 }
+
+const descriptionLength = ref('')
 
 const store = useIdeaStore()
 const { ideaValidations } = storeToRefs(store)
 const { setIdeaValidations, createIdea } = store
 
 const validation = useValidation()
-const { setRequiredFields, resetErrors } = validation
-
-const converter = useRefValueConveter()
-const { convertRefToFloat } = converter
+const {
+    resetErrors,
+    setTextLength,
+    setRequireds,
+    setValidationAttributes,
+    isModelValid
+} = validation
 
 const toast = useToastStore()
 const { showSuccess } = toast
@@ -107,25 +108,32 @@ function tryCreateIdea() {
         id: '',
         title: title.value,
         description: description.value,
-        price: convertRefToFloat(price),
+        price: price.value,
         priceUnit: priceUnit.value
     }
 
-    createIdea(model).then(() => {
-        title.value = ''
-        description.value = ''
-        price.value = ''
-        priceUnit.value = ''
+    if (isModelValid(errors, model)) {
         resetErrors(errors)
-        showSuccess('Created Idea successfully')
-    }).catch((err: FetchError) => {
-        handleFormFetchError(err, errors)
-    })
+        createIdea(model).then(() => {
+            title.value = ''
+            description.value = ''
+            price.value = undefined
+            priceUnit.value = ''
+            showSuccess('Created Idea successfully')
+        }).catch((err: FetchError) => {
+            handleFormFetchError(err, errors)
+        })
+    }
 }
 
 onMounted(() => {
     setIdeaValidations().then(() => {
-        setRequiredFields(requireds, ideaValidations.value)
+        setValidationAttributes(ideaValidations.value)
+        setRequireds(requireds)
     }).catch(handleFetchError)
+})
+
+watch(description, (value) => {
+    setTextLength(descriptionLength, value, 'description')
 })
 </script>

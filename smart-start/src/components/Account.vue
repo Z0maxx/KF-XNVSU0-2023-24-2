@@ -39,35 +39,31 @@
                         </div>
                         <div class="relative">
                             <label for="profile-picture" class="flex gap-2">
-                                <span>New Profile Picture</span>
+                                <span>New Profile Picture<span v-if="profilePictureRequired" class="text-cyan-400 text-xl">*</span></span>
                                 <div class="size-6 rounded-full overflow-hidden">
                                     <img ref="preview" class="object-cover h-full">
                                 </div>
                             </label>
                             <input v-on:change="handleProfilePictureChange" id="profile-picture" type="file" accept="image/jpeg,image/gif,image/png" class="file:bg-lime-600 file:border-solid file:text-white file:rounded file:border-lime-800 file:cursor-pointer cursor-pointer relative w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                            <div v-if="profilePictureRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         </div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="first-name" class="block">First Name</label>
+                        <label for="first-name" class="block">First Name<span v-if="firstNameRequired" class="text-cyan-400 text-xl">*</span></label>
                         <input v-model="firstName" id="first-name" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="firstNameRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in firstNameErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="last-name" class="block">Last Name</label>
+                        <label for="last-name" class="block">Last Name<span v-if="lastNameRequired" class="text-cyan-400 text-xl">*</span></label>
                         <input v-model="lastName" id="last-name" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="lastNameRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in lastNameErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="user-name" class="block">Username <span class="text-sm">(will be displayed instead of Name if different than Email)</span></label>
+                        <label for="user-name" class="block">Username<span v-if="userNameRequired" class="text-cyan-400 text-xl">*</span><span class="text-xs">(will be displayed instead of Name if different than Email)</span></label>
                         <input v-model="userName" id="user-name" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="userNameRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in userNameErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
@@ -116,9 +112,9 @@ const lastNameErrors = ref<Array<string>>([])
 const userNameErrors = ref<Array<string>>([])
 
 const errors: Errors = {
-    FirstName: firstNameErrors,
-    LastName: lastNameErrors,
-    UserName: userNameErrors
+    firstName: firstNameErrors,
+    lastName: lastNameErrors,
+    userName: userNameErrors
 }
 
 const firstNameRequired = ref(false)
@@ -126,17 +122,21 @@ const lastNameRequired = ref(false)
 const userNameRequired = ref(false)
 const profilePictureRequired = ref(false)
 const requireds: Requireds = {
-    FirstName: firstNameRequired,
-    LastName: lastNameRequired,
-    UserName: userNameRequired,
-    ProfilePictureContentType: profilePictureRequired
+    firstName: firstNameRequired,
+    lastName: lastNameRequired,
+    userName: userNameRequired
 }
 
 const preview = ref<HTMLImageElement>(document.createElement('img'))
 const activeTab = ref(0)
 
 const validation = useValidation()
-const { setRequiredFields } = validation
+const {
+    resetErrors,
+    setRequireds,
+    setValidationAttributes,
+    isModelValid
+} = validation
 
 const store = useAuthStore()
 
@@ -154,7 +154,7 @@ const { handleFetchError, handleFormFetchError } = errorHandler
 
 const auth = useAuthStore()
 const { deleteAccount } = auth
-const { currentUser} = storeToRefs(auth)
+const { currentUser } = storeToRefs(auth)
 
 function setDefaultValues() {
     const user = currentUser.value
@@ -198,11 +198,14 @@ async function tryUpdateProfile() {
         model.profilePictureData = split[1]
     }
 
-    updateProfile(model).then(() => {
-        showSuccess('Updated Profile successfully')
-    }).catch((err: FetchError) => {
-        handleFormFetchError(err, errors)
-    })
+    if (isModelValid(errors, model)) {
+        updateProfile(model).then(() => {
+            resetErrors(errors)
+            showSuccess('Updated Profile successfully')
+        }).catch((err: FetchError) => {
+            handleFormFetchError(err, errors)
+        })
+    }
 }
 
 async function tryDeleteAccount() {
@@ -216,7 +219,8 @@ async function tryDeleteAccount() {
 
 onMounted(() => {
     setUpdateProfileValidations().then(() => {
-        setRequiredFields(requireds, updateProfileValidations.value)
+        setValidationAttributes(updateProfileValidations.value)
+        setRequireds(requireds)
     }).catch(handleFetchError)
 
     setDefaultValues()

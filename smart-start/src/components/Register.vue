@@ -13,44 +13,38 @@
                             </div>
                         </label>
                         <input v-on:change="handleProfilePictureChange" id="profile-picture" type="file" accept="image/jpeg,image/gif,image/png" class="file:bg-lime-600 file:border-solid file:text-white file:rounded file:border-lime-800 file:cursor-pointer cursor-pointer relative w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="profilePictureRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="first-name" class="block">First Name</label>
+                        <label for="first-name" class="block">First Name<span v-if="firstNameRequired" class="text-cyan-400 text-xl">*</span></label>
                         <input v-model="firstName" id="first-name" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="firstNameRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in firstNameErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="last-name" class="block">Last Name</label>
+                        <label for="last-name" class="block">Last Name<span v-if="lastNameRequired" class="text-cyan-400 text-xl">*</span></label>
                         <input v-model="lastName" id="last-name" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="lastNameRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in lastNameErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="email" class="block">Email</label>
+                        <label for="email" class="block">Email<span v-if="emailRequired" class="text-cyan-400 text-xl">*</span></label>
                         <input type="email" v-model="email" autocomplete="username" id="email" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded invalid:border-orange-500 invalid:outline-orange-500 valid:focus:outline-blue-500">
-                        <div v-if="emailRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in emailErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="password" class="block">Password</label>
+                        <label for="password" class="block">Password<span v-if="passwordRequired" class="text-cyan-400 text-xl">*</span></label>
                         <input type="password" v-model="password" autocomplete="new-password" id="password" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="passwordRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in passwordErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="confirm-password" class="block">Confirm Password</label>
+                        <label for="confirm-password" class="block">Confirm Password<span v-if="passwordRequired" class="text-cyan-400 text-xl">*</span></label>
                         <input type="password" v-model="confirmPassword" autocomplete="new-password" id="confirm-password" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="passwordRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in confirmPasswordErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
@@ -97,35 +91,41 @@ const lastName = ref('')
 const profilePicture = ref<FileList | null>(null)
 
 const emailErrors = ref<Array<string>>([])
+const userNameErrors = ref<Array<string>>([])
 const passwordErrors = ref<Array<string>>([])
 const confirmPasswordErrors = ref<Array<string>>([])
 const firstNameErrors = ref<Array<string>>([])
 const lastNameErrors = ref<Array<string>>([])
 
 const errors: Errors = {
-    Email: emailErrors,
-    Password: passwordErrors,
-    FirstName: firstNameErrors,
-    LastName: lastNameErrors
+    email: emailErrors,
+    userName: userNameErrors,
+    password: passwordErrors,
+    firstName: firstNameErrors,
+    lastName: lastNameErrors
 }
 
 const emailRequired = ref(false)
+const userNameRequired = ref(false)
 const passwordRequired = ref(false)
 const firstNameRequired = ref(false)
 const lastNameRequired = ref(false)
-const profilePictureRequired = ref(false)
 const requireds: Requireds = {
-    Email: emailRequired,
-    Password: passwordRequired,
-    FirstName: firstNameRequired,
-    LastName: lastNameRequired,
-    ProfilePictureContentType: profilePictureRequired
+    email: emailRequired,
+    userName: userNameRequired,
+    password: passwordRequired,
+    firstName: firstNameRequired,
+    lastName: lastNameRequired
 }
 
 const preview = ref<HTMLImageElement>(document.createElement('img'))
 
 const validation = useValidation()
-const { setRequiredFields } = validation
+const {
+    setRequireds,
+    setValidationAttributes,
+    isModelValid
+} = validation
 
 const store = useAuthStore()
 
@@ -140,7 +140,8 @@ const { handleFetchError, handleFormFetchError } = errorHandler
 
 onMounted(() => {
     setRegisterValidations().then(() => {
-        setRequiredFields(requireds, registerValidations.value)
+        setValidationAttributes(registerValidations.value)
+        setRequireds(requireds)
     }).catch(handleFetchError)
 
     window.dispatchEvent(new Event('fb-reload'))
@@ -169,7 +170,7 @@ async function tryRegister() {
         confirmPasswordErrors.value.pop()
     }
 
-    const registerModel: RegisterModel = {
+    const model: RegisterModel = {
         email: email.value,
         userName: email.value,
         password: password.value,
@@ -182,16 +183,18 @@ async function tryRegister() {
         const image = preview.value
         const split = image.src.split(',')
 
-        registerModel.profilePictureContentType = picture.type
-        registerModel.profilePictureData = split[1]
+        model.profilePictureContentType = picture.type
+        model.profilePictureData = split[1]
     }
 
-    register(registerModel).then(() => {
-        showSuccess('Registration was successful, welcome!')
-        router.push({ path: 'ideas' })
-    }).catch((err: FetchError) => {
-        handleFormFetchError(err, errors)
-    })
+    if (isModelValid(errors, model)) {
+        register(model).then(() => {
+            showSuccess('Registration was successful, welcome!')
+            router.push({ path: 'ideas' })
+        }).catch((err: FetchError) => {
+            handleFormFetchError(err, errors)
+        })
+    }
 }
 
 window.addEventListener('fb-response', () => {
