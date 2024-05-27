@@ -42,12 +42,12 @@ export const useIdeaStore = defineStore(model, () => {
     }
 
     async function getIdeas() {
-        return await getItems<Idea>(model)
+        return await getItems<IdeaLLP>(model)
     }
 
     async function getIdeasBy(userId: string) {
         const res = await fetch(`${api}/GetIdeasBy/${userId}`)
-        return await convertToJson(res) as Array<Idea>
+        return await convertToJson(res) as Array<IdeaLLP>
     }
 
     async function createIdea(idea: FormIdea) {

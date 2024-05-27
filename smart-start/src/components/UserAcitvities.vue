@@ -171,6 +171,9 @@
 <script lang="ts" setup>
 import { useFetchErrorHandler } from '@/composables/fetch-error-handler';
 import { useRatingStarConverter } from '@/composables/rating-star-converter';
+import { useSignalR } from '@/composables/signal-r';
+import { useSiteUserTracker } from '@/composables/site-user-tracker';
+import router from '@/router';
 import { useAuthStore } from '@/stores/auth';
 import { useCommentStore } from '@/stores/comment';
 import { useIdeaStore } from '@/stores/idea';
@@ -214,22 +217,16 @@ const popup = usePopupStore()
 const { askConfirmation } = popup
 
 const toast = useToastStore()
-const { showSuccess } = toast
+const { showAlert, showSuccess } = toast
 
 const errorHandler = useFetchErrorHandler()
 const { handleFetchError } = errorHandler
 
-function setActiveTab(tab: number) {
-    activeTab.value = tab
-}
+const tracker = useSiteUserTracker()
+const { trackUserLLP } = tracker
 
-function toggleMenu(i: number) {
-    showMenu.value[i] = !showMenu.value[i]
-}
-
-function splitComment(comment: Comment) {
-    return comment.message.split('\n')
-}
+const signalr = useSignalR()
+const { models, onDeleted } = signalr
 
 async function tryDeleteIdea(idea: Idea) {
     if (await askConfirmation('Delete Idea', 'Are you sure you want to delete this Idea?')) {
@@ -255,6 +252,25 @@ async function tryDeleteComment(comment: Comment) {
     }
 }
 
+function setActiveTab(tab: number) {
+    activeTab.value = tab
+}
+
+function toggleMenu(i: number) {
+    showMenu.value[i] = !showMenu.value[i]
+}
+
+function splitComment(comment: Comment) {
+    return comment.message.split('\n')
+}
+
+function userDeleted(id: string) {
+    if (user.value?.id === id) {
+        showAlert('User got deleted')
+        router.push({ path: '/ideas' })
+    }
+}
+
 function fetchData() {
     if (typeof id.value !== 'string') return
 
@@ -262,10 +278,12 @@ function fetchData() {
         user.value = res
         showMenu.value.fill(false, 0, res.ideas.length)
         isLoading.value = false
+        trackUserLLP(user)
     }).catch(handleFetchError)
 }
 
 onMounted(() => {
+    onDeleted(userDeleted, models.siteUser)
     fetchData()
 })
 

@@ -85,10 +85,10 @@ export type Idea = {
     priceRating: number
     ratingCount: number
     commentCount: number
-    owner: SiteUser
 }
 
 export type IdeaLLP = Idea & {
+    owner: SiteUser
     comments: Array<CommentLLP>
     ratings: Array<RatingLLP>
 }
@@ -137,3 +137,7 @@ export type FetchErrorHandlerOptions = {
     errors?: Errors
     statusMessages?: Array<StatusMessage>
 }
+
+export type SignalRModel = 'Idea' | 'Rating' | 'Comment' | 'SiteUser'
+
+export type SignalRType = 'Created' | 'Changed' | 'Updated' | 'Deleted'

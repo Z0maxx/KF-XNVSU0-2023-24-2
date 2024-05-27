@@ -94,7 +94,7 @@
         </div>
         <div>
             <h1 class="text-3xl sm:text-5xl font-medium">{{ idea?.title }}</h1>
-            <Idea v-if="idea" :idea="idea" :display-owner="true" :display-title="false" :display-details="false" :display-ideas-by="true" />
+            <Idea v-if="idea" :idea="idea" :display-owner="true" :display-title="false" :display-details="false" :display-ideas-by="true" @try-delete="setDeleted(true)" @delete-failed="setDeleted(false)"/>
             <div v-if="currentUser && userRating && userComment && currentUser.id !== idea?.ownerId" class="mt-2 p-1 flex flex-col sm:flex-row gap-1 bg-green-200 rounded">
                 <div class="bg-green-700 p-2 border-2 border-green-800 rounded">
                     <div class="flex justify-between flex-wrap gap-2">
@@ -146,8 +146,8 @@
                     </button>
                 </div>
             </div>
-            <div class="mt-2">
-                <ul class="flex flex-col sm:flex-row gap-2 bg-green-200 font-medium rounded-t p-1">
+            <div v-show="!isLoading" class="mt-2">
+                <ul class="flex flex-col sm:flex-row gap-2 bg-green-200 font-medium rounded-t p-2">
                     <li class="w-full sm:size-min">
                         <button @click="setActiveTab(0)" class="w-full flex gap-1 p-1 border-b-2" :class="{ 'border-green-800 text-green-800': activeTab === 0, 'border-slate-500 text-slate-500 hover:border-slate-600 hover:text-slate-600': activeTab !== 0 }">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
@@ -167,38 +167,36 @@
                     </li>
                 </ul>
                 <div class="flex flex-wrap gap-1 bg-green-200 p-1 text-white rounded-b">
-                    <div v-show="activeTab === 0">
-                        <div class="flex flex-wrap sm:flex-nowrap">
-                            <div class="max-w-48 sm:max-w-none" ref="ratingsChart"></div>
-                            <div class="max-w-48 sm:max-w-none" ref="ideaRatingsChart"></div>
-                            <div class="max-w-48 sm:max-w-none" ref="priceRatingsChart"></div>
+                    <div v-show="activeTab === 0" class="flex flex-wrap sm:flex-nowrap">
+                        <div class="max-w-48 sm:max-w-none" ref="ratingsChart"></div>
+                        <div class="max-w-48 sm:max-w-none" ref="ideaRatingsChart"></div>
+                        <div class="max-w-48 sm:max-w-none" ref="priceRatingsChart"></div>
+                    </div>
+                    <div v-show="activeTab === 0" v-for="rating in idea?.ratings.filter(r => r.ownerId !== currentUser?.id)" :key="rating.id" class="bg-green-700 p-2 border-2 border-green-800 rounded size-max">
+                        <div class="flex flex-col sm:flex-row gap-2 justify-between">
+                            <router-link :to="'/activities/' + rating.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
+                                <div class="size-6 rounded-full overflow-hidden">
+                                    <img :src="'https://localhost:7256/api/GetProfilePicture/' + rating.ownerId" class="object-fit h-full">
+                                </div>
+                                <span class="font-medium">{{ rating.owner.userName ?? `${rating.owner.firstName} ${rating.owner.lastName}` }}</span>
+                            </router-link>
+                            <button v-if="isModerator" @click="tryDeleteRating(rating)" class="p-1 flex gap-1 justify-center items-center bg-lime-200 rounded-full text-red-600 hover:text-red-700 font-medium">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
+                                    <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
                         </div>
-                        <div v-show="activeTab === 0" v-for="rating in idea?.ratings.filter(r => r.ownerId !== currentUser?.id)" :key="rating.id" class="bg-green-700 p-2 border-2 border-green-800 rounded size-max">
-                            <div class="flex flex-col sm:flex-row gap-2 justify-between">
-                                <router-link :to="'/activities/' + rating.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
-                                    <div class="size-6 rounded-full overflow-hidden">
-                                        <img :src="'https://localhost:7256/api/GetProfilePicture/' + rating.ownerId" class="object-fit h-full">
-                                    </div>
-                                    <span class="font-medium">{{ rating.owner.userName ?? `${rating.owner.firstName} ${rating.owner.lastName}` }}</span>
-                                </router-link>
-                                <button v-if="isModerator" @click="tryDeleteRating(rating)" class="p-1 flex gap-1 justify-center items-center bg-lime-200 rounded-full text-red-600 hover:text-red-700 font-medium">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
-                                        <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div>Idea</div>
-                            <div class="flex">
-                                <svg v-for="i in 5" :key="i" xmlns="http://www.w3.org/2000/svg" stroke="black" :fill="(i <= rating.ideaRating ? starColor(rating.ideaRating) : 'gray')" viewBox="0 0 24 24" stroke-width="1" class="size-8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                                </svg>
-                            </div>
-                            <div>Price</div>
-                            <div class="flex">
-                                <svg v-for="i in 5" :key="i" xmlns="http://www.w3.org/2000/svg" stroke="black" :fill="(i <= rating.priceRating ? starColor(rating.priceRating) : 'gray')" viewBox="0 0 24 24" stroke-width="1" class="size-8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                                </svg>
-                            </div>
+                        <div>Idea</div>
+                        <div class="flex">
+                            <svg v-for="i in 5" :key="i" xmlns="http://www.w3.org/2000/svg" stroke="black" :fill="(i <= rating.ideaRating ? starColor(rating.ideaRating) : 'gray')" viewBox="0 0 24 24" stroke-width="1" class="size-8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                            </svg>
+                        </div>
+                        <div>Price</div>
+                        <div class="flex">
+                            <svg v-for="i in 5" :key="i" xmlns="http://www.w3.org/2000/svg" stroke="black" :fill="(i <= rating.priceRating ? starColor(rating.priceRating) : 'gray')" viewBox="0 0 24 24" stroke-width="1" class="size-8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                            </svg>
                         </div>
                     </div>
                     <div v-show="activeTab === 1" v-for="comment in idea?.comments.filter(c => c.ownerId !== currentUser?.id)" :key="comment.id" class="w-full bg-green-700 p-2 border-2 border-green-800 rounded">
@@ -237,8 +235,14 @@ import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import Idea from './Idea.vue';
+import { useIdeaTracker } from '@/composables/idea-tracker';
+import { useRatingTracker } from '@/composables/rating-tracker';
+import { useCommentTracker } from '@/composables/comment-tracker';
+import { useSignalR } from '@/composables/signal-r';
+import router from '@/router';
 
 const isLoading = ref(true)
+const deleted = ref(false)
 const idea = ref<IdeaLLP | undefined>(undefined)
 const store = useIdeaStore()
 const { getIdea } = store
@@ -277,10 +281,22 @@ const popup = usePopupStore()
 const { askConfirmation } = popup
 
 const toast = useToastStore()
-const { showSuccess } = toast
+const { showAlert, showSuccess } = toast
 
 const errorHandler = useFetchErrorHandler()
 const { handleFetchError, handleFormFetchError } = errorHandler
+
+const ideaTracker = useIdeaTracker()
+const { trackIdeaLLP } = ideaTracker
+
+const ratingTracker = useRatingTracker()
+const { trackRating } = ratingTracker
+
+const commentTracker = useCommentTracker()
+const { trackComment } = commentTracker
+
+const signalr = useSignalR()
+const { models, onDeleted } = signalr
 
 async function tryDeleteUserRating() {
     const rating = userRating.value
@@ -288,10 +304,6 @@ async function tryDeleteUserRating() {
 
     if (await askConfirmation('Delete Rating', 'Are you sure you want to delete this Rating?')) {
         deleteRating(rating).then(() => {
-            hasRating.value = false
-            rating.id = ''
-            rating.ideaRating = 5
-            rating.priceRating = 5
             showSuccess('Deleted Rating successfully')
         }).catch(handleFetchError)
     }
@@ -303,9 +315,6 @@ async function tryDeleteUserComment() {
 
     if (await askConfirmation('Delete Comment', 'Are you sure you want to delete this Comment?')) {
         deleteComment(comment).then(() => {
-            hasComment.value = false
-            comment.id = ''
-            comment.message = ''
             showSuccess('Deleted Comment successfully')
         }).catch(handleFetchError)
     }
@@ -342,17 +351,13 @@ function changePriceRating(rating: number) {
 function trySubmitRating() {
     if (!userRating.value) return
 
-    submitRating(userRating.value).then(() => {
-        hasRating.value = true
-    }).catch(handleFetchError)
+    submitRating(userRating.value).catch(handleFetchError)
 }
 
 function trySubmitComment() {
     if (!userComment.value) return
 
-    submitComment(userComment.value).then(() => {
-        hasComment.value = true
-    }).catch((err: FetchError) => {
+    submitComment(userComment.value).catch((err: FetchError) => {
         handleFormFetchError(err, { Message: commentErrors })
     })
 }
@@ -369,7 +374,16 @@ function getChartData(ratings: Array<number>): Array<ChartData> {
     return ratings.map((d, i) => ({ name: i + 1, value: d })).filter(d => d.value > 0)
 }
 
+function resetCharts() {
+    if (ideaRatingsChart.value && priceRatingsChart.value && ratingsChart.value) {
+        ideaRatingsChart.value.innerHTML = ''
+        priceRatingsChart.value.innerHTML = ''
+        ratingsChart.value.innerHTML = ''
+    }
+}
+
 function displayCharts() {
+    resetCharts()
     if (!idea.value?.ratings.length) return
 
     const ideaRatings = [0, 0, 0, 0, 0]
@@ -381,6 +395,7 @@ function displayCharts() {
         ratings[r.priceRating - 1]++
         ratings[r.ideaRating - 1]++
     })
+
     pieChart(getChartData(ideaRatings), ideaRatingsChart.value, 'Idea Ratings')
     pieChart(getChartData(priceRatings), priceRatingsChart.value, 'Idea Ratings')
     pieChart(getChartData(ratings), ratingsChart.value, 'Overall Ratings')
@@ -389,37 +404,39 @@ function displayCharts() {
 function setDefaultValues() {
     const user = currentUser.value
     const instance = idea.value
-    if (user && instance) {
-        const ownerId = user.id
-        const ideaId = instance.id
+    if (!user || !instance) return
 
-        userRating.value = instance.ratings.find(r => r.ownerId === ownerId)
-        if (!userRating.value) {
-            userRating.value = {
-                id: '',
-                ownerId,
-                ideaId,
-                priceRating: 5,
-                ideaRating: 5
-            }
-        }
-        else {
-            hasRating.value = true
-        }
+    const ownerId = user.id
+    const ideaId = instance.id
 
-        userComment.value = instance.comments.find(c => c.ownerId === ownerId)
-        if (!userComment.value) {
-            userComment.value = {
-                id: '',
-                ownerId,
-                ideaId,
-                message: ''
-            }
-        }
-        else {
-            hasComment.value = true
+    userRating.value = instance.ratings.find(r => r.ownerId === ownerId)
+    if (!userRating.value) {
+        userRating.value = {
+            id: '',
+            ownerId,
+            ideaId,
+            priceRating: 5,
+            ideaRating: 5
         }
     }
+    else {
+        hasRating.value = true
+    }
+    trackRating(userRating, hasRating)
+
+    userComment.value = instance.comments.find(c => c.ownerId === ownerId)
+    if (!userComment.value) {
+        userComment.value = {
+            id: '',
+            ownerId,
+            ideaId,
+            message: ''
+        }
+    }
+    else {
+        hasComment.value = true
+    }
+    trackComment(userComment, hasComment)
 }
 
 function fetchData() {
@@ -428,7 +445,7 @@ function fetchData() {
     getIdea(id.value).then((res) => {
         isLoading.value = false
         idea.value = res
-
+        trackIdeaLLP(idea)
         displayCharts()
         if (currentUser.value) {
             setDefaultValues()
@@ -437,11 +454,29 @@ function fetchData() {
     }).catch(handleFetchError)
 }
 
+function ideaDeleted(id: string) {
+    if (idea.value?.id == id) {
+        if (!deleted.value) {
+            showAlert('Idea got deleted')
+        }
+        router.push({ path: '/ideas' })
+    }
+}
+
+function setDeleted(value: boolean) {
+    deleted.value = value
+}
+
 onMounted(() => {
+    onDeleted(ideaDeleted, models.idea)
     fetchData()
 })
 
 watch(id, () => {
     fetchData()
+})
+
+watch(idea, () => {
+    displayCharts()
 })
 </script>
