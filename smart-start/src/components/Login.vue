@@ -5,18 +5,16 @@
             <form class="w-96">
                 <h2 class="text-2xl sm:text-3xl text-green-800 font-medium">Use a local account</h2>
                 <div class="p-2 bg-green-700 border-green-800 border-2 rounded mt-4">
-                    <div class="relative">
-                        <label for="email" class="block">Email</label>
+                    <div class="mt-4 relative">
+                        <label for="email" class="block">Email<span v-if="emailRequired" class="text-cyan-400 text-xl">*</span></label>
                         <input type="email" v-model="email" autocomplete="username" id="email" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded invalid:border-orange-500 invalid:outline-orange-500 valid:focus:outline-blue-500">
-                        <div v-if="emailRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
                         <div v-for="error in emailErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
                     </div>
                     <div class="mt-4 relative">
-                        <label for="password" class="block">Password</label>
-                        <input type="password" v-model="password" autocomplete="current-password" id="password" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
-                        <div v-if="passwordRequired" class="text-cyan-400 text-xl absolute right-2 top-6">*</div>
+                        <label for="password" class="block">Password<span v-if="passwordRequired" class="text-cyan-400 text-xl">*</span></label>
+                        <input type="password" v-model="password" autocomplete="new-password" id="password" class="w-full p-1 bg-emerald-600 border-emerald-800 border-2 rounded focus:outline-blue-500">
                         <div v-for="error in passwordErrors" :key="error">
                             <p class="text-cyan-400">{{ error }}</p>
                         </div>
@@ -61,26 +59,30 @@ const emailErrors = ref<Array<string>>([])
 const passwordErrors = ref<Array<string>>([])
 
 const errors: Errors = {
-    Email: emailErrors,
-    Password: passwordErrors
+    email: emailErrors,
+    password: passwordErrors
 }
 
 const emailRequired = ref(false)
 const passwordRequired = ref(false)
 const requireds: Requireds = {
-    Email: emailRequired,
-    Password: passwordRequired
+    email: emailRequired,
+    password: passwordRequired
 }
 
 const validation = useValidation()
-const { setRequiredFields } = validation
+const {
+    setRequireds,
+    setValidationAttributes,
+    isModelValid
+} = validation
 
 const store = useAuthStore()
 const { login, loginFacebook, setLoginValidations } = store
 const { loginValidations } = storeToRefs(store)
 
 const statusMessages: Array<StatusMessage> = [
-    {status: 401, message: 'Incorrect Email or Password'}
+    { status: 401, message: 'Incorrect Email or Password' }
 ]
 const errorHandler = useFetchErrorHandler()
 const { handleFetchError, handleFetchErrorWithOptions } = errorHandler
@@ -88,18 +90,25 @@ const { handleFetchError, handleFetchErrorWithOptions } = errorHandler
 
 onMounted(() => {
     setLoginValidations().then(() => {
-        setRequiredFields(requireds, loginValidations.value)
+        setValidationAttributes(loginValidations.value)
+        setRequireds(requireds)
     }).catch(handleFetchError)
     window.dispatchEvent(new Event('fb-reload'))
 })
 
 async function tryLogin() {
-    const loginModel: LoginModel = { email: email.value, password: password.value }
-    login(loginModel).then(() => {
-        router.push({ path: 'ideas' })
-    }).catch((err: FetchError) => {
-        handleFetchErrorWithOptions(err, { errors, statusMessages })
-    })
+    const model: LoginModel = {
+        email: email.value,
+        password: password.value
+    }
+
+    if (isModelValid(errors, model)) {
+        login(model).then(() => {
+            router.push({ path: 'ideas' })
+        }).catch((err: FetchError) => {
+            handleFetchErrorWithOptions(err, { errors, statusMessages })
+        })
+    }
 }
 
 window.addEventListener('fb-response', () => {

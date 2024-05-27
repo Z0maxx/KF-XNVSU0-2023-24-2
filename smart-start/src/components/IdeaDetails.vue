@@ -5,7 +5,7 @@
             <div class="my-4 bg-neutral-700 border-emerald-800 border-4 rounded-lg overflow-hidden">
                 <div class="p-2 bg-emerald-700 animate-pulse">
                     <div class="size-6 rounded-full bg-emerald-400"></div>
-                    <div class="text-emerald-700">
+                    <div class="text-trasparent">
                         <div>_</div>
                         <div class="flex">
                             <svg v-for="_ in 5" :key="_" xmlns="http://www.w3.org/2000/svg" stroke="black" fill="gray" viewBox="0 0 24 24" stroke-width="1" class="size-8">
@@ -59,7 +59,7 @@
                     </button>
                 </div>
                 <div class="relative p-2 bg-green-700 border-green-800 border-2 rounded w-full">
-                    <h2 class="text-xl text-green-600">_</h2>
+                    <h2 class="text-xl text-transparent">_</h2>
                     <textarea disabled rows="4" class="w-full mt-1 p-1 bg-emerald-600 border-2 border-emerald-800 rounded"></textarea>
                     <button class="p-2 mt-1 w-full flex gap-1 justify-center bg-lime-600 border-2 border-lime-800 font-medium rounded">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
@@ -133,9 +133,9 @@
                             </svg>
                         </button>
                     </div>
-                    <textarea v-model="userComment.message" rows="4" class="w-full mt-1 p-1 bg-emerald-600 border-2 border-emerald-800 rounded focus:outline-blue-500"></textarea>
-                    <div class="text-cyan-400 text-xl absolute right-4 top-10">*</div>
-                    <div v-for="error in commentErrors" :key="error">
+                    <textarea v-model="userComment.message" rows="4" class="w-full mt-1 px-1 pb-1 pt-3 bg-emerald-600 border-2 border-emerald-800 rounded focus:outline-blue-500"></textarea>
+                    <span class="absolute left-3 top-10 text-xs">{{ commentLength }}</span>
+                    <div v-for="error in messageErrors" :key="error">
                         <p class="text-cyan-400">{{ error }}</p>
                     </div>
                     <button @click="trySubmitComment" class="p-2 mt-1 w-full flex gap-1 justify-center bg-lime-600 hover:bg-lime-700 border-2 border-lime-800 font-medium rounded">
@@ -230,7 +230,7 @@ import { useIdeaStore } from '@/stores/idea';
 import { usePopupStore } from '@/stores/popup';
 import { useRatingStore } from '@/stores/rating';
 import { useToastStore } from '@/stores/toast';
-import { ChartData, Comment, CommentLLP, FetchError, IdeaLLP, Rating } from '@/types';
+import { ChartData, Comment, CommentLLP, Errors, FetchError, IdeaLLP, Rating } from '@/types';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
@@ -240,6 +240,7 @@ import { useRatingTracker } from '@/composables/rating-tracker';
 import { useCommentTracker } from '@/composables/comment-tracker';
 import { useSignalR } from '@/composables/signal-r';
 import router from '@/router';
+import { useValidation } from '@/composables/validation';
 
 const isLoading = ref(true)
 const deleted = ref(false)
@@ -272,10 +273,17 @@ const converter = useRatingStarConverter()
 const { starColor } = converter
 
 const hasComment = ref(false)
+const commentLength = ref('')
 const userComment = ref<Comment | undefined>(undefined)
-const commentErrors = ref<Array<string>>([])
+const messageErrors = ref<Array<string>>([])
+const commentErrors: Errors = { message: messageErrors }
 const commentStore = useCommentStore()
-const { submitComment, deleteComment, setCommentValidations } = commentStore
+const { commentValidations } = storeToRefs(commentStore)
+const {
+    submitComment,
+    deleteComment,
+    setCommentValidations
+} = commentStore
 
 const popup = usePopupStore()
 const { askConfirmation } = popup
@@ -297,6 +305,14 @@ const { trackComment } = commentTracker
 
 const signalr = useSignalR()
 const { models, onDeleted } = signalr
+
+const validation = useValidation()
+const {
+    resetErrors,
+    setTextLength,
+    setValidationAttributes,
+    isModelValid
+} = validation
 
 async function tryDeleteUserRating() {
     const rating = userRating.value
@@ -356,10 +372,12 @@ function trySubmitRating() {
 
 function trySubmitComment() {
     if (!userComment.value) return
-
-    submitComment(userComment.value).catch((err: FetchError) => {
-        handleFormFetchError(err, { Message: commentErrors })
-    })
+    if (isModelValid(commentErrors, userComment.value)) {
+        resetErrors(commentErrors)
+        submitComment(userComment.value).catch((err: FetchError) => {
+            handleFormFetchError(err, commentErrors)
+        })
+    }
 }
 
 function setActiveTab(tab: number) {
@@ -448,8 +466,10 @@ function fetchData() {
         trackIdeaLLP(idea)
         displayCharts()
         if (currentUser.value) {
-            setDefaultValues()
-            setCommentValidations()
+            setCommentValidations().then(() => {
+                setValidationAttributes(commentValidations.value)
+                setDefaultValues()
+            })
         }
     }).catch(handleFetchError)
 }
@@ -479,4 +499,10 @@ watch(id, () => {
 watch(idea, () => {
     displayCharts()
 })
+
+watch(userComment, (value) => {
+    if (value) {
+        setTextLength(commentLength, value.message, 'message')
+    }
+}, { deep: true })
 </script>
