@@ -25,7 +25,7 @@ export const useIdeaStore = defineStore(model, () => {
             id: '',
             title: '',
             description: '',
-            price: undefined,
+            price: 0,
             priceUnit: ''
         }).catch((err: FetchError) => {
             if ('errors' in err && err.status === 400) {
