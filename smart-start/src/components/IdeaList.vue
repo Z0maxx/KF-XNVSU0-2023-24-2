@@ -49,12 +49,13 @@
 </template>
 <script lang="ts" setup>
 import { useFetchErrorHandler } from "@/composables/fetch-error-handler";
+import { useIdeaTracker } from "@/composables/idea-tracker";
 import { useIdeaStore } from "@/stores/idea";
-import { Idea } from "@/types";
+import { IdeaLLP } from "@/types";
 import { onMounted, ref } from "vue";
 import { default as IdeaComponent } from "./Idea.vue";
 
-const ideas = ref<Array<Idea>>([])
+const ideas = ref<Array<IdeaLLP>>([])
 
 const store = useIdeaStore()
 const { getIdeas } = store
@@ -62,12 +63,16 @@ const { getIdeas } = store
 const errorHandler = useFetchErrorHandler()
 const { handleFetchError } = errorHandler
 
+const tracker = useIdeaTracker()
+const { trackIdeasLLP } = tracker
+
 const isLoading = ref(true)
 
 onMounted(() => {
     getIdeas().then((res) => {
         ideas.value = res
-        isLoading.value = false
+        isLoading.value = false     
+        trackIdeasLLP(ideas)
     }).catch(handleFetchError)
 })
 </script>

@@ -54,13 +54,18 @@
 import { useFetchErrorHandler } from "@/composables/fetch-error-handler";
 import { useIdeaStore } from "@/stores/idea";
 import { useSiteUserStore } from "@/stores/site-user";
-import { Idea, SiteUser } from "@/types";
+import { IdeaLLP, SiteUser } from "@/types";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { default as IdeaComponent } from "./Idea.vue";
+import { useIdeaTracker } from "@/composables/idea-tracker";
+import { useSiteUserTracker } from "@/composables/site-user-tracker";
+import { useSignalR } from "@/composables/signal-r";
+import router from "@/router";
+import { useToastStore } from "@/stores/toast";
 
 const user = ref<SiteUser | undefined>(undefined)
-const ideas = ref<Array<Idea>>([])
+const ideas = ref<Array<IdeaLLP>>([])
 
 const store = useIdeaStore()
 const { getIdeasBy } = store
@@ -76,6 +81,18 @@ const { getSiteUser } = userStore
 const errorHandler = useFetchErrorHandler()
 const { handleFetchError } = errorHandler
 
+const ideaTracker = useIdeaTracker()
+const { trackIdeasLLPBy } = ideaTracker
+
+const userTracker = useSiteUserTracker()
+const { trackUser } = userTracker
+
+const signalr = useSignalR()
+const { models, onDeleted } = signalr
+
+const toast = useToastStore()
+const { showAlert } = toast
+
 const isLoading = ref(true)
 
 function fetchData() {
@@ -84,15 +101,25 @@ function fetchData() {
 
     getSiteUser(id).then((res) => {
         user.value = res
+        trackUser(user)
 
         getIdeasBy(id).then((res) => {
             ideas.value = res
             isLoading.value = false
+            trackIdeasLLPBy(ideas, id)
         }).catch(handleFetchError)
     }).catch(handleFetchError)
 }
 
+function userDeleted(id: string) {
+    if (user.value?.id === id) {
+        showAlert('User got deleted')
+        router.push({ path: '/ideas' })
+    }
+}
+
 onMounted(() => {
+    onDeleted(userDeleted, models.siteUser)
     fetchData()
 })
 
