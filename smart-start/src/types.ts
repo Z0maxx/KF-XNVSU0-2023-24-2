@@ -52,6 +52,29 @@ export type SiteUserLLP = SiteUser & {
 
 export type Validations = Record<string, Array<string>>
 
+export type Attribute = {
+    type: string
+    message: string
+}
+
+export type RequiredAttribute = Attribute & {
+    required: true
+}
+
+export type RangeAttribute = Attribute & {
+    min: number
+    max: number 
+}
+
+export type StringLengthAttribute = Attribute & {
+    min?: number
+    max: number
+}
+
+export type ValidationAttribute = RequiredAttribute | RangeAttribute | StringLengthAttribute
+
+export type ValidationAttributes = Record<string, Array<ValidationAttribute>>
+
 export type Errors = Record<string, Ref<Array<string>>>
 
 export type Requireds = Record<string, Ref<boolean>>
