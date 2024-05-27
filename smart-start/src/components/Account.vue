@@ -1,5 +1,5 @@
 <template>
-    <div class="size-max">
+    <div class="sm:size-max">
         <h1 class="text-3xl sm:text-5xl font-medium">Account</h1>
         <div class="flex flex-col sm:flex-row gap-2 flex-wrap p-2 bg-emerald-600 border-emerald-800 border-2 rounded mt-4">
             <div>

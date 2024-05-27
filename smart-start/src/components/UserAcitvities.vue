@@ -33,9 +33,9 @@
                 <div class="bg-green-200 p-1 rounded-b animate-pulse"></div>
             </div>
         </div>
-        <h1 v-if="user" class="flex gap-2 flex-wrap text-3xl sm:text-5xl font-medium">
+        <h1 v-if="user" class="flex gap-2 flex-wrap text-3xl items-center sm:text-5xl font-medium">
             <span>Activities By</span>
-            <div class="size-12 rounded-full overflow-hidden">
+            <div class="size-8 sm:size-12 rounded-full overflow-hidden">
                 <img :src="'https://localhost:7256/api/GetProfilePicture/' + user.id" class="object-fit h-full">
             </div>
             <span>{{ user.userName ?? `${user.firstName} ${user.lastName}` }}</span>
@@ -110,15 +110,13 @@
                     </div>
                 </div>
                 <div v-show="activeTab === 1" v-for="rating in user?.ratings" :key="rating.id" class="w-full bg-emerald-700 p-2 border-2 border-emerald-800 rounded">
-                    <div class="flex flex-col sm:flex-row gap-2 justify-between">
+                    <div class="flex gap-2 flex-wrap justify-between">
                         <h2 class="text-xl font-bold">{{ rating.ideaTitle }}</h2>
-                        <div class="flex flex-col sm:flex-row gap-2 justify-between">
-                            <button v-if="currentUser && (currentUser.id === rating.ownerId || isModerator)" @click="tryDeleteRating(rating)" class="p-1 flex gap-1 justify-center items-center bg-lime-200 rounded-full text-red-600 hover:text-red-700 font-medium">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
-                                    <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
+                        <button v-if="currentUser && (currentUser.id === rating.ownerId || isModerator)" @click="tryDeleteRating(rating)" class="p-1 flex gap-1 justify-center items-center bg-lime-200 rounded-full text-red-600 hover:text-red-700 font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
+                                <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
                     </div>
                     <div>Idea</div>
                     <div class="flex">
@@ -143,17 +141,15 @@
                     </div>
                 </div>
                 <div v-show="activeTab === 2" v-for="comment in user?.comments" :key="comment.id" class="w-full bg-emerald-700 p-2 border-2 border-emerald-800 rounded">
-                    <div class="flex flex-col sm:flex-row gap-2 justify-between">
+                    <div class="flex gap-2 flex-wrap justify-between">
                         <h2 class="text-xl font-bold">{{ comment.ideaTitle }}</h2>
-                        <div class="flex flex-col sm:flex-row gap-2 justify-between">
-                            <button v-if="currentUser && (currentUser.id === comment.ownerId || isModerator)" @click="tryDeleteComment(comment)" class="p-1 flex gap-1 justify-center items-center bg-lime-200 rounded-full text-red-600 hover:text-red-700 font-medium">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
-                                    <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
+                        <button v-if="currentUser && (currentUser.id === comment.ownerId || isModerator)" @click="tryDeleteComment(comment)" class="p-1 flex gap-1 justify-center items-center bg-lime-200 rounded-full text-red-600 hover:text-red-700 font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
+                                <path fill-rule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
                     </div>
-                    <p v-for="line in splitComment(comment)" :key="line">{{ line }}</p>
+                    <p v-for="line in splitComment(comment)" :key="line" class="break-words">{{ line }}</p>
                     <div class="mt-2 p-1 bg-teal-200 text-teal-800 rounded-md size-max font-medium">
                         <router-link :to="'/idea/' + comment.ideaId" class="flex gap-1 hover:underline">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">

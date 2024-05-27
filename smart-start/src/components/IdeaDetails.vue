@@ -213,7 +213,7 @@
                                 </svg>
                             </button>
                         </div>
-                        <p v-for="line in splitComment(comment)" :key="line">{{ line }}</p>
+                        <p v-for="line in splitComment(comment)" :key="line" class="break-words">{{ line }}</p>
                     </div>
                 </div>
             </div>
