@@ -95,15 +95,15 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { defineProps, ref, toRefs } from 'vue';
+import { useFetchErrorHandler } from '@/composables/fetch-error-handler';
 import { useRatingStarConverter } from '@/composables/rating-star-converter';
 import { useAuthStore } from '@/stores/auth';
 import { useIdeaStore } from '@/stores/idea';
 import { usePopupStore } from '@/stores/popup';
 import { useToastStore } from '@/stores/toast';
-import { Idea } from '@/types';
+import { FetchError, Idea, IdeaLLP } from '@/types';
 import { storeToRefs } from 'pinia';
-import { useFetchErrorHandler } from '@/composables/fetch-error-handler';
+import { defineProps, defineEmits, ref, toRefs } from 'vue';
 
 const showMenu = ref(false)
 const props = defineProps<{
@@ -111,7 +111,7 @@ const props = defineProps<{
     displayTitle: boolean
     displayDetails: boolean
     displayIdeasBy: boolean
-    idea: Idea
+    idea: IdeaLLP
 }>()
 const { idea, displayOwner } = toRefs(props)
 
@@ -133,6 +133,8 @@ const { handleFetchError } = errorHandler
 const converter = useRatingStarConverter()
 const { starColor, wholeStars, emptyStars, percentageStarFill } = converter
 
+const emit = defineEmits(['try-delete', 'deleteFailed'])
+
 function splitDescription(description: string) {
     return description.split('\n')
 }
@@ -142,10 +144,14 @@ function toggleMenu() {
 }
 
 async function tryDelete(idea: Idea) {
+    emit('try-delete')
     if (await askConfirmation('Delete Idea', 'Are you sure you want to delete this Idea?')) {
         deleteIdea(idea).then(() => {
             showSuccess('Deleted Idea successfully')
-        }).catch(handleFetchError)
+        }).catch((err: FetchError) => {
+            emit('deleteFailed')
+            handleFetchError(err)
+        })
     }
 }
 </script>
