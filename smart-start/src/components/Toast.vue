@@ -26,6 +26,7 @@ import { ref, watchEffect } from 'vue';
 const store = useToastStore()
 const { close } = store
 const { message, type, displayed } = storeToRefs(store)
+
 const background = ref('')
 const text = ref('')
 const highlight = ref('')
