@@ -1,5 +1,5 @@
 <template>
-    <div class="my-4">
+    <div class="my-4 overflow-auto">
         <div class="p-2 bg-emerald-700 border-emerald-800 border-x-4 border-t-4 rounded-t-lg">
             <div class="flex flex-col sm:flex-row gap-2 justify-between">
                 <router-link v-if="displayOwner" :to="'/activities/' + idea.ownerId" class="flex flex-wrap gap-2 text-yellow-400 hover:underline">
@@ -40,12 +40,12 @@
                     </svg>
                     <svg v-if="percentageStarFill(idea.ideaRating) > 0" xmlns="http://www.w3.org/2000/svg" stroke="black" viewBox="0 0 24 24" stroke-width="1" class="size-8">
                         <defs>
-                            <linearGradient id="star-percentage">
+                            <linearGradient :id="idea.id + '-idea-star-percentage'">
                                 <stop :stop-color="starColor(idea.ideaRating)" :offset="percentageStarFill(idea.ideaRating) + '%'"></stop>
                                 <stop stop-color="gray"></stop>
                             </linearGradient>
                         </defs>
-                        <path fill="url(#star-percentage)" stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                        <path :fill="'url(#' + idea.id + '-idea-star-percentage)'" stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
                     </svg>
                     <svg v-for="_ in emptyStars(idea.ideaRating)" :key="_" xmlns="http://www.w3.org/2000/svg" stroke="black" fill="gray" viewBox="0 0 24 24" stroke-width="1" class="size-8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
@@ -58,12 +58,12 @@
                     </svg>
                     <svg v-if="percentageStarFill(idea.priceRating) > 0" xmlns="http://www.w3.org/2000/svg" stroke="black" viewBox="0 0 24 24" stroke-width="1" class="size-8">
                         <defs>
-                            <linearGradient id="star-percentage">
+                            <linearGradient :id="idea.id + '-price-star-percentage'">
                                 <stop :stop-color="starColor(idea.priceRating)" :offset="percentageStarFill(idea.priceRating) + '%'"></stop>
                                 <stop stop-color="gray"></stop>
                             </linearGradient>
                         </defs>
-                        <path fill="url(#star-percentage)" stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                        <path :fill="'url(#' + idea.id + '-price-star-percentage)'" stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
                     </svg>
                     <svg v-for="_ in emptyStars(idea.priceRating)" :key="_" xmlns="http://www.w3.org/2000/svg" stroke="black" fill="gray" viewBox="0 0 24 24" stroke-width="1" class="size-8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
@@ -72,7 +72,7 @@
             </div>
         </div>
         <div class="p-2 bg-emerald-600 border-emerald-800 border-x-4">
-            <p v-for="line in splitDescription(idea.description)" :key="line">{{ line }}</p>
+            <p v-for="line in splitDescription(idea.description)" :key="line" class="break-words">{{ line }}</p>
         </div>
         <div class="p-2 font-medium bg-emerald-500 border-emerald-800 border-x-4 border-b-4 rounded-b-lg flex flex-col sm:flex-row justify-between sm:items-center gap-2">
             <div>Price: ${{ idea.price }} / {{ idea.priceUnit }}</div>
