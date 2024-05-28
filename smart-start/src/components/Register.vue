@@ -1,8 +1,8 @@
 <template>
-    <div class="size-max">
+    <div class="md:size-max">
         <h1 class="text-3xl sm:text-5xl font-medium">Register</h1>
-        <div class="mt-4 p-2 flex flex-col sm:flex-row flex-gap gap-2 bg-green-200 rounded">
-            <form class="w-96">
+        <div class="mt-4 p-2 flex flex-col md:flex-row flex-gap gap-2 bg-green-200 rounded">
+            <form class="w-full md:w-96">
                 <h2 class="text-2xl sm:text-3xl text-green-800 font-medium">Create an account</h2>
                 <div class="p-2 bg-green-700 border-green-800 border-2 rounded mt-4">
                     <div class="relative">
@@ -57,7 +57,7 @@
                     </button>
                 </div>
             </form>
-            <div class="w-full sm:w-80 flex flex-col">
+            <div class="w-full md:w-80 flex flex-col">
                 <h2 class="text-2xl sm:text-3xl text-green-800 font-medium">Sign up with a service</h2>
                 <div class="p-2 bg-green-700 border-green-800 border-2 rounded mt-4 flex-1">
                     <div id="fb-spinner">
