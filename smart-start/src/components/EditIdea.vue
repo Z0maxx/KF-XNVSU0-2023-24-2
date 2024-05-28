@@ -147,14 +147,13 @@ function setDefaultValues() {
 }
 
 onMounted(() => {
-    getIdea(id).then((res) => {
-        idea.value = res
-    }).catch(handleFetchError)
-
     setIdeaValidations().then(() => {
         setValidationAttributes(ideaValidations.value)
         setRequireds(requireds)
-        setDefaultValues()
+        getIdea(id).then((res) => {
+            idea.value = res
+            setDefaultValues()
+        }).catch(handleFetchError)
     }).catch(handleFetchError)
 })
 
