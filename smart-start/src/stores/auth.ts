@@ -4,6 +4,8 @@ import { FetchError, LoginModel, RegisterModel, SiteUser, TokenModel, UpdateProf
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
+let tokenExpiration: number
+
 const api = 'https://localhost:7256/Auth/'
 const fbResponse = 'fb-response'
 const tokenModelKey = 'token-model'
@@ -42,33 +44,10 @@ export const useAuthStore = defineStore('Auth', () => {
     const loginValidations = ref<Validations | undefined>(undefined)
     const registerValidations = ref<Validations | undefined>(undefined)
     const updateProfileValidations = ref<Validations | undefined>(undefined)
-    const tokenModelRef = ref<TokenModel | undefined>(undefined)
-    const currentUserRef = ref<SiteUser | undefined>(undefined)
-    setRef(tokenModelKey, tokenModelRef)
-    setRef(currentUserKey, currentUserRef)
-
-    function checkExpiration(): boolean {
-        const value = tokenModelRef.value
-        if (!value) return false
-        const now = new Date()
-        const expiration = new Date(value.expiration)
-        if (now >= expiration) {
-            logout()
-            router.push({ path: '/login' })
-            return true
-        }
-        return false
-    }
-
-    const tokenModel = computed<TokenModel | undefined>(() => {
-        if (checkExpiration()) return undefined
-        return tokenModelRef.value
-    })
-
-    const currentUser = computed<SiteUser | undefined>(() => {
-        if (checkExpiration()) return undefined
-        return currentUserRef.value
-    })
+    const tokenModel = ref<TokenModel | undefined>(undefined)
+    const currentUser = ref<SiteUser | undefined>(undefined)
+    setRef(tokenModelKey, tokenModel)
+    setRef(currentUserKey, currentUser)
 
     const isLoggedIn = computed(() => {
         return tokenModel.value !== undefined
@@ -92,8 +71,16 @@ export const useAuthStore = defineStore('Auth', () => {
             headers: getHeadersWithBearer(json.token)
         })
 
-        setItem(tokenModelKey, json, tokenModelRef)
-        setItem(currentUserKey, await convertToJson(res), currentUserRef)
+        const now = new Date().getTime()
+        setItem(tokenModelKey, json)
+        setItem(currentUserKey, await convertToJson(res))
+        const expiration = tokenModel.value?.expiration
+        if (!expiration) throw new Error('No Expiration')
+        
+        tokenExpiration = setTimeout(() => {
+            logout()
+            router.push({ path: '/login' })
+        }, new Date(expiration).getTime() - now)
     }
 
     async function login(model: LoginModel): Promise<void> {
@@ -107,8 +94,9 @@ export const useAuthStore = defineStore('Auth', () => {
     }
 
     function logout() {
-        removeItem(tokenModelKey, tokenModelRef)
-        removeItem(currentUserKey, currentUserRef)
+        clearTimeout(tokenExpiration)
+        removeItem(tokenModelKey)
+        removeItem(currentUserKey)
         if (localStorage.getItem(fbResponse)) {
             localStorage.removeItem(fbResponse)
             window.dispatchEvent(new Event('fb-logout'))
@@ -132,7 +120,7 @@ export const useAuthStore = defineStore('Auth', () => {
         res = await fetch(api + 'GetUserInfos', {
             headers: headersWithBearer.value
         })
-        setItem(currentUserKey, await convertToJson(res), currentUserRef)
+        setItem(currentUserKey, await convertToJson(res))
     }
 
     async function setLoginValidations(): Promise<void> {
