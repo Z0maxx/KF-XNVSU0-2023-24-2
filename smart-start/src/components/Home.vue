@@ -88,7 +88,7 @@ onMounted(() => {
 
 watch(ideas, (value) => {
   ideaCount.value = value.length.toString()
-  ratingCount.value = value.reduce((acc, curr) => acc + curr.ratings.length, 0).toString()
+  ratingCount.value = value.reduce((acc, curr) => acc + curr.ratings.length * 2, 0).toString()
   commentCount.value = value.reduce((acc, curr) => acc + curr.comments.length, 0).toString()
   displayCharts()
 }, { deep: true })
